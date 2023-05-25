@@ -9,12 +9,12 @@ Installation
 Users
 -----
 
-You can install the latest release from `PyPi <https://pypi.org/project/configure_package_name/>`_
+You can install the latest release from `PyPi <https://pypi.org/project/looti/>`_
 as follows:
 
 .. code-block:: bash
 
-  pip install configure_package_name
+  pip install looti
 
 
 Alternatively clone the repository and build the package locally as follows:

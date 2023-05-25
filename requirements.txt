@@ -1,1 +1,9 @@
 importlib_metadata==3.1.1
+numpy
+scipy
+pandas
+ipython
+jupyter
+matplotlib
+scikit-learn
+pyyaml

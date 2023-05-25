@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""configure_package_name PACKAGE.
+"""looti PACKAGE.
 
 Provide a basic description of what your package contains.
 
@@ -28,7 +28,7 @@ from warnings import warn
 from importlib_metadata import version
 
 try:
-    _version = version('configure_package_name')
+    _version = version('looti')
 except Exception:  # pragma: no cover
     _version = 'Unkown'
     warn(
