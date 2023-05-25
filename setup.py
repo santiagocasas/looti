@@ -10,14 +10,14 @@ minor = 0
 patch = 0
 
 # Set the package details
-name = 'configure_package_name'
+name = 'looti'
 version = '.'.join(str(value) for value in (major, minor, patch))
-author = 'configure_author'
-email = 'configure_email'
-gh_user = 'configure_ghuser'
+author = 'Santiago Casas'
+email = 's.casas@protonmail.com'
+gh_user = 'santiagocasas'
 url = 'https://github.com/{0}/{1}'.format(gh_user, name)
-year = 'configure_year'
-description = 'configure_description'
+year = '2023'
+description = 'General purpose ML emulator'
 license = 'MIT'
 
 # Set the package classifiers

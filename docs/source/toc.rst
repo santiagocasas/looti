@@ -14,7 +14,7 @@
    :titlesonly:
    :caption: API Documentation
 
-   configure_package_name
+   looti
    scripts
    z_ref
 
