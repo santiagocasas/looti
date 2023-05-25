@@ -1,0 +1,13 @@
+name: lootiemu
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - numpy
+  - scipy
+  - ipython
+  - jupyter
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - pyyaml
