@@ -1,21 +1,12 @@
-import os
-import sys
 import numpy as np
-import errno
-import copy
-
 import pandas as pd
-#from random import randint, randrange
-import random as rn
 
-from sklearn.decomposition import PCA, FactorAnalysis, DictionaryLearning
-from sklearn.decomposition import SparseCoder
+from sklearn.decomposition import PCA, DictionaryLearning
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.utils import shuffle
 
-import time
 import looti.tools as too
 import looti.interpolators as itp
 
@@ -134,8 +125,7 @@ class LearnData:
             self.DLtraining()
         elif self.method == "GP":
             self.GPtraining()
-        elif self.method == "OT":
-            self.OTtraining()
+
         else:
             raise ValueError("Error: Method inexistent or not yet implemented.")
 
@@ -233,16 +223,6 @@ class LearnData:
         self.CreateGP()
         self.gp_regressor.fit(X_train, Y_train)
 
-
-    def OTtraining(self):
-        """Input
-        Emulation Data to create loctr and perform training
-        Noise Level to create loctr
-        """
-        #_mat : data / betas
-            #self.trainspace =  self.trainspace[:,-1].flatten()
-        self.OT=otAlg.OT_Algorithm(nsteps=self.operator.ot_nsteps,gamma= self.operator.ot_gamma,num_iter=self.operator.ot_num_iter)  # OT object
-        self.OT.OT_Algorithm(self.trainspace,self.operator.ot_xgrids,mode='train',data=self.trainspace_mat,)
 
 
     def predict(self, predict_space, pca_norm):
@@ -505,18 +485,20 @@ def Predict_ratio(emulation_data,
 
     if (n_train is not None and n_test is not None):
         emulation_data.calculate_data_split(n_train = n_train,n_vali=1, n_test=n_test,
-                                    n_splits=n_splits, verbosity=0,manual_split=True,test_indices=test_indices,
-                                    train_redshift_indices =  train_redshift_indices,
-                                    test_redshift_indices = test_redshift_indices)
+                                            n_splits=n_splits, verbosity=0,manual_split=True,test_indices=test_indices,
+                                            train_redshift_indices =  train_redshift_indices,
+                                            test_redshift_indices = test_redshift_indices)
         
-    elif (emulation_data.train_redshift !=emulation_data.z_requested[train_redshift_indices] or emulation_data.test_redshift !=emulation_data.z_requested[test_redshift_indices] ):
+    elif (emulation_data.train_redshift !=emulation_data.z_requested[train_redshift_indices]).all() or (emulation_data.test_redshift !=emulation_data.z_requested[test_redshift_indices]).all():
         emulation_data.calculate_data_split(n_train = emulation_data.train_size,n_vali=1, n_test=emulation_data.test_size,
-                                    n_splits=n_splits, verbosity=0,manual_split=True,test_indices = emulation_data.ind_test,
-                                    train_indices = emulation_data.ind_train,
-                                    train_redshift_indices =  train_redshift_indices,
-                                    test_redshift_indices = test_redshift_indices)
+                                            n_splits=n_splits, verbosity=0,manual_split=True,test_indices = emulation_data.ind_test,
+                                            train_indices = emulation_data.ind_train,
+                                            train_redshift_indices =  train_redshift_indices,
+                                            test_redshift_indices = test_redshift_indices)
+        
     emulation_data.data_split(split,thinning=thinning, mask=mask,
-                                          apply_mask = GLOBAL_apply_mask, verbosity=0)
+                              apply_mask = GLOBAL_apply_mask, verbosity=0)
+    
     PCAop = LearningOperator(Operator,ncomp=ncomp,gp_n_rsts =gp_n_rsts,gp_const=gp_const,gp_length=gp_length, gp_bounds=gp_bounds, interp_type=interp_type,interp_dim=interp_dim)
     intobj = LearnData(PCAop)
 ###Perfoming the PCA reduction and interpolation
@@ -552,7 +534,7 @@ def reconstruct_spectra(ratios_predicted,
         if emulation_data.multiple_z == True:
             LCDM_ref = emulation_data.df_ref.loc[parameters[0]].values.flatten()
         else:
-           LCDM_ref = emulation_data.df_ref.loc[emulation_data.z_requested].values.flatten()
+           LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, emulation_data.z_requested[0]].values.flatten()
 
 
         if normalization == True:
@@ -585,7 +567,7 @@ def RMSE_parameters(emulation_data,
               thinning = 1, min_k= None,max_k =None,mask=None,interp_dim=2):
     
     """/!\ WARNING /!\ we are not using this function anymore."""
-    n_test = len(emulation_data.matrix_z)/len(emulation_data.z_requested)
+    n_test = len(emulation_data.matrix_ratios_dict)/len(emulation_data.z_requested)
     Params = []
     RMSE_array = []
     for i in range(n_test):
@@ -635,7 +617,7 @@ def RMSE_Interpolate_over_redshift(emulation_data,D_redshifts,test_indices,min_n
     redshift_indices = list(range(len(emulation_data.z_requested)))
     redshift_indices = shuffle(redshift_indices )
     test_redshift_indices = redshift_indices[:n_test]
-    n_param = int(len(emulation_data.matrix_z)/len(emulation_data.z_requested))
+    n_param = int(len(emulation_data.matrix_ratios_dict)/len(emulation_data.z_requested))
     RMSE_list=[]
     for n_train in range(min_n_train,max_n_train):
         train_redshift_indices = redshift_indices[n_test:n_test+n_train]
@@ -651,7 +633,7 @@ def RMSE_Interpolate_over_redshift(emulation_data,D_redshifts,test_indices,min_n
 
 
             mask = [indices_param +n_param*redshift for redshift in test_redshift_indices ]
-            ref = emulation_data.matrix_z[mask]
+            ref = emulation_data.matrix_ratios_dict[mask]
             rmse+=too.root_mean_sq_err(prediction,ref)
         rmse/=( n_param_test*len(test_redshift_indices))
         RMSE_list.append(rmse)

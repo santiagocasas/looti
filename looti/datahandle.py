@@ -130,7 +130,7 @@ class DataHandle:
 
         ## reverse log operation and set attribute as "lin_features_str" (e.g. "lin_kgrid")
         if self.features_to_Log==True:
-            self.fgrid = np.log10(self.fgrid)
+            self.fgrid = np.log10(self.fgrid.astype(float))
             setattr(self, 'lin_'+self.features_str, np.power(10,self.fgrid))
 
         ## set attribute for the feature grid as "features_str" (e.g. "kgrid")
@@ -188,7 +188,7 @@ class DataHandle:
         Param_names = Index[0,2::2].flatten()
 
         ## get array of parameter values for all lines in dataframe (e.g array([[0.02, 0.12, 68.36, ...], [...], ...]))
-        self.extparam_vals = np.unique(Index[:,3::2],axis=0).astype(np.float)
+        self.extparam_vals = np.unique(Index[:,3::2],axis=0).astype(float)
 
         ## get maximum size of training data set (whole data set -1 as we need at least 1 spectrum for testing)
         self.max_train = len(self.extparam_vals)-1
@@ -229,9 +229,10 @@ class DataHandle:
         else:
             self.multiple_z = True
 
-
+        self.matrix_ratios_dict = np.empty((0, len(self.fgrid)))
         for z in np.sort(redshift_list):
-            self.matrix_z = self.calculate_ratio_data(z,normalize,pos_norm, _SAVING=False)
+            matrix_z = self.calculate_ratio_data(z,normalize,pos_norm, _SAVING=False)
+            self.matrix_ratios_dict = np.vstack((self.matrix_ratios_dict, matrix_z))
 
         self.z_requested = np.array(redshift_list)
 
@@ -282,7 +283,7 @@ class DataHandle:
         matrix_z = (exnoi - binwise_mean) / binwise_std
 
         if _SAVING == True:
-            self.matrix_z = matrix_z
+            self.matrix_ratios_dict = matrix_z
             self.z_requested = z_request
             self.multiple_z = False
         else:
@@ -633,7 +634,7 @@ class DataHandle:
         self.matrix_datalearn_dict = dict()
 
         for dli in self.learn_sets:
-            matrixdata = np.copy(self.matrix_z)
+            matrixdata = np.copy(self.matrix_ratios_dict)
             self.matrixdata=matrixdata
 
             ## copy of mask to avoid modifying orginal mask after iterations
