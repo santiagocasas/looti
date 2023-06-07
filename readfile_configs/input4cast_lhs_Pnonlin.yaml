@@ -1,0 +1,13 @@
+###DATA FORMAT###
+
+main_dir: ../../input4cast/ ## name of the folder which contains all the data
+config_file: main.ini  ## config file containing "params_varying"
+folders_path: rwth_output/class_Asw0wa_DP/ ## path to the output folders
+params_file: cosmo_varying.ini ## config file containing the specific values per run
+reference_folder: '0000'
+
+z_file_name: z_values_list.txt ## file containing the list of redshift values
+k_file_name: k_values_list.txt ## file containing the list of k values
+data_file_name: Pnonlin-zk.txt ## file containing the observable
+
+data_type: Pnonlin
