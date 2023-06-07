@@ -225,7 +225,38 @@ class LearnData:
 
 
 
-    def predict(self, predict_space, pca_norm):
+    def predict(self, predict_space, pca_norm=True):
+        """Predict the spectra for a given set of paremeters.
+        Args:
+            predict_space: the paremeters of the spectra to predict.
+        """
+
+
+        #if isinstance(predict_space, (np.ndarray)) == False:
+            #predict_space = np.array([valispace]).flatten()
+
+        self.predict_space = np.copy(predict_space)
+        if self.interp_dim<2:
+            self.predict_space = self.predict_space[:,-1].flatten()
+        self.predict_mat = self.reconstruct_data(self.predict_space, pca_norm)
+        self.predict_mat_dict = dict()
+        if self.method=="OT":
+            pred_ws=self.predi_weights_arr
+            recospace=self.OT.loctr.data_loctrain_space
+            if len(recospace)!=len(pred_ws):
+                print("Warning: recospace and pred weights are not of same size")
+
+            for ii,vv in enumerate(recospace):
+
+                self.predict_mat_dict[recospace[ii]] = self.predict_mat[pred_ws[ii]].values
+
+
+        else:
+            self.predict_mat_dict = self.matrixdata_to_dict(self.predict_mat, predict_space)
+        return self.predict_mat_dict
+    
+
+    def predict_mat(self, predict_space, pca_norm=True):
         """Predict the spectra for a given set of paremeters.
         Args:
             predict_space: the paremeters of the spectra to predict.
@@ -425,7 +456,7 @@ class LearnData:
 
 
 def Predict_ratio(emulation_data,
-                  Operator = "GP",
+                  Operator = "PCA",
                   ncomp = 1,
                   train_noise = 1e-10,
                   gp_n_rsts = 40,
@@ -532,7 +563,7 @@ def reconstruct_spectra(ratios_predicted,
     for parameters in list(ratios_predicted.keys()):
        # ind = emulation_data.get_index_param(parameters,multiple_redshift=emulation_data.multiple_z)
         if emulation_data.multiple_z == True:
-            LCDM_ref = emulation_data.df_ref.loc[parameters[0]].values.flatten()
+            LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, parameters[0]].values.flatten()
         else:
            LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, emulation_data.z_requested[0]].values.flatten()
 
