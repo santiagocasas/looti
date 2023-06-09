@@ -11,7 +11,7 @@ from matplotlib.lines import Line2D
 
 import matplotlib.cm as cm
 def Plot_prediction_One_parameter(emulation_data, paramindex = None, predictions = None,
-                                   xlabel='k in 1/Mpc',Factor = 1,ratio_mode = True,y_scale_log = False,
+                                   xlabel='k in 1/Mpc',Factor = 1,reconstruct_spectra = False,y_scale_log = False,
                                    plot_training_vectors = False,save_path=None,name_of_plot="pred_temp" ):
     """Plot the prediction for one single parameter 
 
@@ -19,7 +19,7 @@ def Plot_prediction_One_parameter(emulation_data, paramindex = None, predictions
             emulation_data:
             paramvalue_predicted: dictionary of prediction : parameters -> ratios/spectra 
             xlabel: label for y axis
-            ratio_mode: if True it plots directly the ratios, otherwise it perfoms a reconstruction of spectra
+            reconstruct_spectra: if True it perfoms a reconstruction of spectra
             Factor: multiply the grid by this factor
             y_scale_log: log scale for y axis
 
@@ -51,17 +51,17 @@ def Plot_prediction_One_parameter(emulation_data, paramindex = None, predictions
     #ax[0].semilogx(k_grid,ratio_test_dict[tuple(paramvalue)])
     prediction=predictions[tuple(paramvalue)].flatten()
     
-    if ratio_mode== True :
-        truth = emulation_data.matrix_datalearn_dict["theo"]["test"][paramindex].flatten()
-    else:
+    if reconstruct_spectra== True :
         index = emulation_data.get_index_param(list(paramvalue ),multiple_redshift=emulation_data.multiple_z)
         truth =  emulation_data.df_ext.loc[index].values.flatten()[emulation_data.mask_true]
+    else:
+        truth = emulation_data.matrix_datalearn_dict["theo"]["test"][paramindex].flatten()
     
     
     ax[0].semilogx(k_grid,truth,color ='green', label = 'test data')
     ax[0].semilogx(k_grid,prediction,color ='red',label = 'prediction', linestyle='--')
     
-    if plot_training_vectors  == True and ratio_mode == True:
+    if plot_training_vectors  == True and reconstruct_spectra == False:
         for i,trv in enumerate (emulation_data.train_samples):
             training_vector = emulation_data.matrix_datalearn_dict["theo"]["train"][i].flatten()
             ax[0].semilogx(k_grid,training_vector ,color =cm.Blues(i*50), label = func_label(emulation_data,trv))
@@ -74,12 +74,13 @@ def Plot_prediction_One_parameter(emulation_data, paramindex = None, predictions
     #plt.xscale('log')
     residuals = np.abs(1- (prediction/truth))
     label_str = func_label(emulation_data,paramvalue)
-    if ratio_mode ==  True:
+    if reconstruct_spectra ==  True:
+        title =  "Spectra for " +label_str +f_redshift(emulation_data)
+        ax[0].set_ylabel("Spectra") 
+    else:
         title =  "Ratio for " +label_str +f_redshift(emulation_data)
         ax[0].set_ylabel("Ratio")
-    else: 
-        title =  "Spectra for " +label_str +f_redshift(emulation_data)
-        ax[0].set_ylabel("Spectra")  
+         
     ax[1].semilogx(k_grid, residuals, '--v',
                color='purple', lw=1, ms=1, markevery=1,
          alpha=0.8, label=title)
@@ -135,7 +136,7 @@ def get_param_array(data_df, parval, quanty):
     return np.array(resuarr)
 
 def plot_RMSE(zchoice,datatest_df_dict,noi='theo',turnoff_LIN=True,turnoff_PCA=True,turnoff_GP=True,turnoff_DL=True,
-              y_scale_log = False,ratio_mode = True,plot_every = 2):
+              y_scale_log = False,reconstruct_spectra = False,plot_every = 2):
     """Plot RMSE at given redshift
         Args:
             zchoice: redshift's indice to plot
@@ -146,7 +147,7 @@ def plot_RMSE(zchoice,datatest_df_dict,noi='theo',turnoff_LIN=True,turnoff_PCA=T
             turnoff_GP:
             turnoff_DL
             y_scale_log:
-            ratio_mode: if True will plot rmse of ratios, otherwise the RMSE of the spectra
+            reconstruct_spectra: if True will plot the RMSE of the spectra, otherwise the RMSE of ratios
             plot_every:
         """
     
@@ -181,7 +182,7 @@ def plot_RMSE(zchoice,datatest_df_dict,noi='theo',turnoff_LIN=True,turnoff_PCA=T
     ax[0].text(0.5,0.95, '$z=$'+zst, fontsize=12, ha='center', transform=ax[1].transAxes)
     ax[1].text(0.5,0.95, '$z=$'+zst, fontsize=12, ha='center', transform=ax[1].transAxes)
 
-    if ratio_mode == False:
+    if reconstruct_spectra == True:
         
         ylabdict = dict(zip(['global_spectra_mean_rmse','global_spectra_mean_maxerr'],
                                      ['RMSE','Max. relative error']))

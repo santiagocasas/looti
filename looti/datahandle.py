@@ -45,13 +45,13 @@ class DataHandle:
        z_name (str, optional):
        features_to_Log (bool, optional):
        data_type= (str, optional):
-       ratio_mode (bool, optional):
+       normalize_by_reference (bool, optional):
        param_names_dict (dict, optional):
        verbosity (int, optional):
        param_names_dict (dict, optional): dictionary containing parameter number as key and name of the parameter as value
 
     Attributes:
-        ratio_mode (bool):
+        self.normalize_by_reference (bool):
         self.flnm_ext (str):
         self.flnm_ref (str):
         self.data_dir (str):
@@ -80,11 +80,11 @@ class DataHandle:
                        z_name='zred',
                        features_to_Log=True,
                        data_type='tcl',
-                       ratio_mode=False,
+                       normalize_by_reference=True,
                        param_names_dict={},
                        verbosity=1):
 
-        self.ratio_mode = ratio_mode
+        self.normalize_by_reference = normalize_by_reference
         self.flnm_ext = extmodel_filename
         self.flnm_ref = refmodel_filename
         self.data_dir = data_dir
@@ -122,7 +122,7 @@ class DataHandle:
         self.df_ext = pd.read_csv(self.data_dir + self.flnm_ext + fileext, index_col=self.mindexcols_ext)
 
         ## get the feature grid (e.g. values of k) from the dataframe and read the reference dataframe
-        if self.ratio_mode == False:
+        if self.normalize_by_reference == True:
             self.df_ref = pd.read_csv(self.data_dir + self.flnm_ref + fileext, index_col=self.mindexcols_ref)
             self.fgrid = self.df_ref.loc[(self.features_str),:].values.flatten()
         else:
@@ -136,8 +136,8 @@ class DataHandle:
         ## set attribute for the feature grid as "features_str" (e.g. "kgrid")
         setattr(self, self.features_str, self.fgrid)
 
-        ## if ratio_mode is not used, get multiindices of reference dataframe
-        if self.ratio_mode ==False:
+        ## if normalize_by_reference is used, get multiindices of reference dataframe
+        if self.normalize_by_reference ==True:
             too.condprint('Shape of imported reference model dataframe: ', str(self.df_ref.shape),level=3,verbosity=verbosity)
             self.multindex_ref = self.df_ref.index
             self.multindex_names_ref = list(self.multindex_ref.names)
@@ -172,7 +172,7 @@ class DataHandle:
         
         ## sort dataframes 
         self.df_ext=self.df_ext.sort_values([data_indexname, z_indexname,'parameter_1_value'])
-        if self.ratio_mode == False:
+        if self.normalize_by_reference == True:
             self.df_ref=self.df_ref.sort_values([data_indexname, z_indexname])
 
         ## print values of parameter_1 if verbosity >=3
@@ -261,10 +261,10 @@ class DataHandle:
 
 
         ## if ratio mode is not used, the spectra are divided by a reference spectrum
-        if self.ratio_mode == True:
-            reftheo = 1
-        else:
+        if self.normalize_by_reference == True:
             reftheo = self.df_ref.loc[(self.data_type, z_request)].values
+        else:
+            reftheo = 1
 
         exnoi = self.df_ext.loc[self.data_type, z_request].values / reftheo
 
