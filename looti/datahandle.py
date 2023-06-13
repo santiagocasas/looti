@@ -229,10 +229,22 @@ class DataHandle:
         else:
             self.multiple_z = True
 
-        self.matrix_ratios_dict = np.empty((0, len(self.fgrid)))
+        matrix_ratios_dict = np.empty((0, len(self.fgrid)))
         for z in np.sort(redshift_list):
             matrix_z = self.calculate_ratio_data(z,normalize,pos_norm, _SAVING=False)
-            self.matrix_ratios_dict = np.vstack((self.matrix_ratios_dict, matrix_z))
+            matrix_ratios_dict = np.vstack((matrix_ratios_dict, matrix_z))
+
+        if normalize == True:
+            binwise_mean = matrix_ratios_dict.mean(axis=0)
+            binwise_std = matrix_ratios_dict.std(axis=0)
+        else:
+            binwise_mean = 0
+            binwise_std = 1
+
+        self.binwise_mean = binwise_mean
+        self.binwise_std = binwise_std
+
+        self.matrix_ratios_dict = (matrix_ratios_dict - binwise_mean) / binwise_std
 
         self.z_requested = np.array(redshift_list)
 
@@ -269,18 +281,19 @@ class DataHandle:
         exnoi = self.df_ext.loc[self.data_type, z_request].values / reftheo
 
         ## binwise normalization: we shift by the mean and divide by standard devitaion
-        if normalize == True:
-            binwise_mean = exnoi.mean(axis=0)
-            binwise_std = exnoi.std(axis=0)
-        else:
-            binwise_mean = 0
-            binwise_std = 1
+        # if normalize == True:
+        #     binwise_mean = exnoi.mean(axis=0)
+        #     binwise_std = exnoi.std(axis=0)
+        # else:
+        #     binwise_mean = 0
+        #     binwise_std = 1
 
-        self.binwise_mean = binwise_mean
-        self.binwise_std = binwise_std
+        # self.binwise_mean = binwise_mean
+        # self.binwise_std = binwise_std
         
         ## dictionary with data as keys and array of normalized spectra as values (e.g. {"theo": array([[...],[...],...])})
-        matrix_z = (exnoi - binwise_mean) / binwise_std
+        # matrix_z = (exnoi - binwise_mean) / binwise_std
+        matrix_z = exnoi
 
         if _SAVING == True:
             self.matrix_ratios_dict = matrix_z

@@ -19,8 +19,6 @@ class FrameConstructor():
         with open(path_config_file,'r') as file:
             Param_list = yaml.load(file, Loader=yaml.FullLoader)
 
-        self.main_dir = Param_list["main_dir"]
-        self.config_file = Param_list["config_file"]
         self.folders_path = Param_list["folders_path"]
         self.params_file = Param_list["params_file"]
         self.reference_folder = Param_list["reference_folder"]
@@ -31,15 +29,12 @@ class FrameConstructor():
         self.data_type = Param_list["data_type"]
 
 
-    def create_reference_dataframe(self):
-        pars_dict = self.read_main(self.main_dir, self.config_file)
+    def create_k_reference_dataframe(self):
 
         dataframe = pd.DataFrame()
         folder = self.reference_folder
 
-        config_dict = self.read_config(self.main_dir, self.folders_path, folder, self.params_file)
-
-        z_array, k_array, observable = self.read_files(self.main_dir, self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
+        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
 
         names = ['data_type', 'redshift']
 
@@ -58,16 +53,15 @@ class FrameConstructor():
 
 
     def create_k_dataframe(self):
-        pars_dict = self.read_main(self.main_dir, self.config_file)
-        folders = self.read_folder(self.main_dir, self.folders_path)
+        folders = self.read_folder(self.folders_path)
 
         dataframe = pd.DataFrame()
         for folder in folders:
 
-            config_dict = self.read_config(self.main_dir, self.folders_path, folder, self.params_file)
+            config_dict = self.read_config(self.folders_path, folder, self.params_file)
             # params_dict = self.create_parameter_dictionary(pars_dict, config_dict)
 
-            z_array, k_array, observable = self.read_files(self.main_dir, self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
+            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
 
             names = ['data_type', 'redshift']
             for i, pp in enumerate(config_dict.keys()): ## pars_dict
@@ -97,14 +91,11 @@ class FrameConstructor():
     
 
     def create_z_reference_dataframe(self):
-        pars_dict = self.read_main(self.main_dir, self.config_file)
 
         dataframe = pd.DataFrame()
         folder = self.reference_folder
 
-        config_dict = self.read_config(self.main_dir, self.folders_path, folder, self.params_file)
-
-        z_array, k_array, observable = self.read_files(self.main_dir, self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
+        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
 
         names = ['data_type', 'redshift']
 
@@ -120,30 +111,26 @@ class FrameConstructor():
     
 
     def create_z_dataframe(self):
-        pars_dict = self.read_main(self.main_dir, self.config_file)
-        folders = self.read_folder(self.main_dir, self.folders_path)
+        folders = self.read_folder(self.folders_path)
 
         dataframe = pd.DataFrame()
         for folder in folders:
 
-            config_dict = self.read_config(self.main_dir, self.folders_path, folder, self.params_file)
-            # params_dict = self.create_parameter_dictionary(pars_dict, config_dict)
+            config_dict = self.read_config(self.folders_path, folder, self.params_file)
 
-            z_array, k_array, observable = self.read_files(self.main_dir, self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
+            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
 
             names = ['data_type', 'redshift']
-            for i, pp in enumerate(config_dict.keys()): ## pars_dict
+            for i, pp in enumerate(config_dict.keys()):
                 names.append('parameter_' + str(i+1))
                 names.append('parameter_' + str(i+1) + '_value')
 
             values = [self.data_type, 0.0]
-            for p, v in zip(config_dict.keys(), config_dict.values()): ## pars_dict, pars_dict
+            for p, v in zip(config_dict.keys(), config_dict.values()):
                 values.append(p)
                 values.append(v)
             
             multiIndex1 = pd.MultiIndex.from_tuples([values], names=names)
-            # print('IND:', observable.shape[0], '=', len(multiIndex1))
-            # print('COL:', observable.shape[1],'=', np.arange(1, len(z_array)+1).shape[0])
             df_temp = pd.DataFrame(data=[observable], index=multiIndex1, columns=np.arange(1, len(z_array)+1))
             dataframe = pd.concat([dataframe, df_temp])
 
@@ -153,23 +140,16 @@ class FrameConstructor():
         return dataframe
 
 
-    def read_folder(self, path, folder):
+    def read_folder(self, folder_path):
         # folders = os.listdir(path + folder)
-        folders = [f.name for f in os.scandir(path+folder) if f.is_dir()]
+        folders = [f.name for f in os.scandir(folder_path) if f.is_dir()]
         folders.remove(self.reference_folder)
         return folders
 
 
-    def read_main(self, config_dir, config_file):
-        configmain = ConfigParser()
-        configmain.optionxform=str
-        configmain.read(config_dir + config_file)
-        pars_var_dict = dict(configmain.items('params_varying'))
-        return pars_var_dict
 
-
-    def read_config(self, main_dir, config_dir, config_folder, config_file):
-        with open(main_dir + config_dir + config_folder + "/" + config_file) as f:
+    def read_config(self, folder_path, config_folder, params_file):
+        with open(folder_path + config_folder + "/" + params_file) as f:
             config = StringIO()
             config.write('[dummy_section]\n')
             config.write(f.read().replace('%', '%%'))
@@ -193,10 +173,10 @@ class FrameConstructor():
     #     return pars_var_dict
 
 
-    def read_files(self, main_dir, folders_path, folder_name, z_file_name, k_file_name, data_file_name):
+    def read_files(self, folders_path, folder_name, z_file_name, k_file_name, data_file_name):
 
-        z_array = np.loadtxt(main_dir + folders_path + folder_name + "/" + z_file_name)
-        k_array = np.loadtxt(main_dir + folders_path + folder_name + "/" + k_file_name)
-        Pks  = np.loadtxt(main_dir + folders_path + folder_name + "/" + data_file_name)
+        z_array = np.loadtxt(folders_path + folder_name + "/" + z_file_name)
+        k_array = np.loadtxt(folders_path + folder_name + "/" + k_file_name)
+        Pks  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
 
         return z_array, k_array, Pks
