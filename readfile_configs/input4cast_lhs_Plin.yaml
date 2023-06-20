@@ -1,6 +1,6 @@
 ###DATA FORMAT###
 
-folders_path: ../../input4cast/rwth_output/class_Asw0wa_DP/   ## path to the output folders
+folders_path: ../../input4cast/rwth_output/mg_camb_lhs_log10fR0/   ## path to the output folders
 params_file: cosmo_varying.ini                                ## config file containing the specific values per run
 reference_folder: '0000'                                      ## folder containing output for fiducial values
 

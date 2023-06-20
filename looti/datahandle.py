@@ -81,10 +81,12 @@ class DataHandle:
                        features_to_Log=True,
                        data_type='tcl',
                        normalize_by_reference=True,
+                       normalize_by_mean_std=True,
                        param_names_dict={},
                        verbosity=1):
 
         self.normalize_by_reference = normalize_by_reference
+        self.normalize_by_mean_std = normalize_by_mean_std
         self.flnm_ext = extmodel_filename
         self.flnm_ref = refmodel_filename
         self.data_dir = data_dir
@@ -207,17 +209,13 @@ class DataHandle:
 
 
 
-    def calculate_ratio_by_redshifts(self,redshift_list, normalize = True, pos_norm = 2):
+    def calculate_ratio_by_redshifts(self, redshift_list):
         """Calculate the ratio between the external model and the reference for any redshift passed"
 
         Args:
             redshift_list (list): 
                 redshifts desired for the ratios
-            normalize (bool, optional):
 
-            pos_norm (int, optional): 
-                specify the position where the normalization takes the references. 
-                At this point any ratio equals to 1
         """
 
         redshift_list = np.atleast_1d(redshift_list)
@@ -231,10 +229,12 @@ class DataHandle:
 
         matrix_ratios_dict = np.empty((0, len(self.fgrid)))
         for z in np.sort(redshift_list):
-            matrix_z = self.calculate_ratio_data(z,normalize,pos_norm, _SAVING=False)
+            matrix_z = self.calculate_ratio_data(z, _SAVING=False)
             matrix_ratios_dict = np.vstack((matrix_ratios_dict, matrix_z))
 
-        if normalize == True:
+        self.matrix_ratios_raw = matrix_ratios_dict
+
+        if self.normalize_by_mean_std == True:
             binwise_mean = matrix_ratios_dict.mean(axis=0)
             binwise_std = matrix_ratios_dict.std(axis=0)
         else:
@@ -250,14 +250,13 @@ class DataHandle:
 
 
 
-    def calculate_ratio_data(self, z, normalize = True, pos_norm = 2, _SAVING = True):
+    def calculate_ratio_data(self, z, _SAVING = True):
         """Calculate the ratio between the external model and the reference at a specified redshift
 
         Args:
             z (float): 
                 redshift desired for the ratios
-            normalize (bool, optional):
-                if True, spectra are normalized by mean and standard deviation
+
             SAVING (bool, optional):  
                 The user should not change this paremeter. True if several redshifts are computed, False otherwise.
         """
@@ -278,22 +277,7 @@ class DataHandle:
         else:
             reftheo = 1
 
-        exnoi = self.df_ext.loc[self.data_type, z_request].values / reftheo
-
-        ## binwise normalization: we shift by the mean and divide by standard devitaion
-        # if normalize == True:
-        #     binwise_mean = exnoi.mean(axis=0)
-        #     binwise_std = exnoi.std(axis=0)
-        # else:
-        #     binwise_mean = 0
-        #     binwise_std = 1
-
-        # self.binwise_mean = binwise_mean
-        # self.binwise_std = binwise_std
-        
-        ## dictionary with data as keys and array of normalized spectra as values (e.g. {"theo": array([[...],[...],...])})
-        # matrix_z = (exnoi - binwise_mean) / binwise_std
-        matrix_z = exnoi
+        matrix_z = self.df_ext.loc[self.data_type, z_request].values / reftheo
 
         if _SAVING == True:
             self.matrix_ratios_dict = matrix_z

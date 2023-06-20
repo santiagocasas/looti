@@ -177,6 +177,6 @@ class FrameConstructor():
 
         z_array = np.loadtxt(folders_path + folder_name + "/" + z_file_name)
         k_array = np.loadtxt(folders_path + folder_name + "/" + k_file_name)
-        Pks  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
+        observable  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
 
-        return z_array, k_array, Pks
+        return z_array, k_array, observable
