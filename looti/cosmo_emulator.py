@@ -1,6 +1,7 @@
 from looti import datahandle as dhl
 from looti import dictlearn as dcl
 import numpy as np
+import pickle
 
 class CosmoEmulator:
 
@@ -36,6 +37,15 @@ class CosmoEmulator:
         self.data[cosmo_quantity] = emulation_data
 
 
+    def read_intobj(self, cosmo_quantity, data_path, intobj_path):
+
+        emulation_data = pickle.load(open(data_path, 'rb'))
+        self.data[cosmo_quantity] = emulation_data
+
+        intobj = pickle.load(open(intobj_path, 'rb'))
+        self.intobjs[cosmo_quantity] = intobj
+
+
     def create_intobj(self, cosmo_quantity, n_params, **kwargs):
 
         emulation_data = self.data[cosmo_quantity]
@@ -55,19 +65,14 @@ class CosmoEmulator:
     def get_prediction(self, cosmo_quantity, input_dict, redshift=None):
 
         emulation_data = self.data[cosmo_quantity]
+        intobj = self.intobjs[cosmo_quantity]
 
-        input_params_list = []
-        for param in emulation_data.paramnames_dict.values():
-            input_params_list.append(input_dict[param])
-        input_params = np.array(input_params_list)
+        input_params = self.read_input_dict(input_dict, emulation_data)
 
         if redshift == None:
             params_requested = input_params.reshape(1, -1)
         else:
             params_requested = np.c_[redshift, np.tile(input_params, (len(redshift),1))]
-
-        intobj = self.intobjs[cosmo_quantity]
-        emulation_data = self.data[cosmo_quantity]
 
         predicted = intobj.predict(params_requested)
         prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
@@ -77,3 +82,33 @@ class CosmoEmulator:
 
         return fgrid, prediction_reconstructed[list(prediction_reconstructed.keys())[0]]
     
+
+    def read_input_dict(self, input_dict, emulation_data):
+
+        input_params_list = []
+        for param in emulation_data.paramnames_dict.values():
+            try:
+                input_params_list.append(input_dict[param])
+            except KeyError:
+                print('Missing input value for parameter:', param)
+        input_params = np.array(input_params_list)
+
+        return input_params
+    
+
+    def get_params(self, cosmo_quantity):
+
+        emulation_data = self.data[cosmo_quantity]
+        params = list(emulation_data.paramnames_dict.values())
+
+        return params
+    
+
+    def get_info(self, cosmo_quantity):
+
+        info_dict = {}
+        info_dict['grid_max'] = self.data[cosmo_quantity].fgrid.max()
+        info_dict['grid_min'] = self.data[cosmo_quantity].fgrid.max()
+        ## TODO: add whatever info we need
+
+        return info_dict
