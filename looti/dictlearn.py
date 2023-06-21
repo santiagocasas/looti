@@ -20,8 +20,8 @@ class LearningOperator:
         self.set_hyperpars(**kwargs)
 
     def set_defaults(self):
-        self._def_interp_type = 'int1d'
-        self._def_interp_dim = 2
+        self._def_interp_type = 'GP'
+        self._def_interp_dim = 1
         self._def_interp_opts = {'kind':'linear'}
         self._def_ncomp = 1
         self._def_dl_alpha = 0.001
@@ -95,7 +95,7 @@ class LearnData:
         self.verbosity = self.operator.verbosity
         return None
 
-    def interpolate(self, train_data=[], train_samples=[], train_noise=[False], pca_norm=False):
+    def interpolate(self, train_data=[], train_samples=[], train_noise=[False], pca_norm=True):
         """Construct the interpolation between the paremeters and the spectra of the training set.
         Args:
             train_data: spectra 
@@ -114,7 +114,7 @@ class LearnData:
         self.trainspace_mat = train_data
         self.trainspace =  train_samples
         if self.interp_dim <2:
-             self.trainspace =  self.trainspace[:,-1].flatten()
+            self.trainspace =  self.trainspace[:,-1].flatten() 
 
 
         if self.method == "LIN":
@@ -164,7 +164,7 @@ class LearnData:
         self.dictionary = Vpca
         self.representation = matPCA
         coeffsPCA=np.transpose(matPCA)
-
+        
         self.trainspace_mean = self.trainspace.mean(axis=0)
         self.trainspace_std = self.trainspace.std(axis=0)
         self.trainspace_std[self.trainspace_std==0] = 1

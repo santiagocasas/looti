@@ -10,7 +10,7 @@ class CosmoEmulator:
         self.cosmo_inputs = cosmo_inputs
         self.data_path = data_path
 
-        self.num_parameters = len(cosmo_inputs)
+        self.num_parameters = cosmo_inputs.shape[-1]
 
         self.intobjs = {}
 
@@ -28,7 +28,7 @@ class CosmoEmulator:
             emulation_data = dhl.DataHandle(datafile_ext,
                                             data_folder,
                                             datafile_ref,
-                                            num_parameters=7,
+                                            num_parameters=self.num_parameters,
                                             data_type=quant,
                                             features_name='k_grid',
                                             features_to_Log=True,
@@ -40,6 +40,7 @@ class CosmoEmulator:
                                                 n_test=n_test,
                                                 verbosity=0,
                                                 manual_split=True)
+            emulation_data.data_split()
             
             self.data[quant] = emulation_data
 
@@ -48,7 +49,11 @@ class CosmoEmulator:
 
         emulation_data = self.data[cosmo_quantity]
 
-        PCAop = dcl.LearningOperator(method='PCA', ncomp=ncomp, gp_n_rsts=40, gp_length=np.ones(self.num_parameters))
+        PCAop = dcl.LearningOperator(method='PCA', 
+                                     ncomp=ncomp, 
+                                     gp_n_rsts=40, 
+                                     gp_length=np.ones(self.num_parameters), 
+                                     verbosity=0)
         intobj = dcl.LearnData(PCAop)
         intobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
                            train_samples=emulation_data.train_samples)
@@ -56,10 +61,12 @@ class CosmoEmulator:
         self.intobjs[cosmo_quantity] = intobj    
 
 
+    def get_prediction(self, cosmo_quantity, input_params, redshift=None):
 
-    def get_prediction(self, cosmo_quantity, redshift, input_params):
-
-        params_requested = np.c_[redshift, np.tile(input_params, (len(redshift),1))]
+        if redshift == None:
+            params_requested = input_params.reshape(1, -1)
+        else:
+            params_requested = np.c_[redshift, np.tile(input_params, (len(redshift),1))]
 
         intobj = self.intobjs[cosmo_quantity]
         emulation_data = self.data[cosmo_quantity]
@@ -68,5 +75,5 @@ class CosmoEmulator:
         prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
                                                            emulation_data=emulation_data)
 
-        return prediction_reconstructed
+        return prediction_reconstructed[list(prediction_reconstructed.keys())[0]]
     
