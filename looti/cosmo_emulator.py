@@ -30,7 +30,7 @@ class CosmoEmulator:
                                             datafile_ref,
                                             num_parameters=self.num_parameters,
                                             data_type=quant,
-                                            features_name='k_grid',
+                                            features_name='grid',
                                             features_to_Log=True,
                                             normalize_by_reference=True,
                                             normalize_by_mean_std=True) 
