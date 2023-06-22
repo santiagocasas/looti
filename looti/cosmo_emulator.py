@@ -109,7 +109,7 @@ class CosmoEmulator:
 
         info_dict = {}
         info_dict['grid_max'] = self.data[cosmo_quantity].fgrid.max()
-        info_dict['grid_min'] = self.data[cosmo_quantity].fgrid.max()
+        info_dict['grid_min'] = self.data[cosmo_quantity].fgrid.min()
         ## TODO: add whatever info we need
 
         return info_dict
