@@ -32,7 +32,7 @@ class CosmoEmulator:
                                             n_test=n_test,
                                             verbosity=0,
                                             manual_split=True)
-        emulation_data.data_split()
+        emulation_data.data_split(verbosity=0)
         
         self.data[cosmo_quantity] = emulation_data
 

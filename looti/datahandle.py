@@ -184,7 +184,7 @@ class DataHandle:
         Param_keys = list(self.df_ext.index.names)[2::2]
 
         ## get array of index values for all lines except the feature grid (e.g. array([["theo", "0.0", "omega_b", "0.02", ...], [...], ...]))
-        Index = np.array([list(ii) for ii in self.df_ext.index.values if list(ii)[0] != 'k_grid' ])
+        Index = np.array([list(ii) for ii in self.df_ext.index.values if list(ii)[0] != self.features_str ])
 
         ## get array of parameter names (e.g. array(["omega_b", "omega_cdm", "H_0", ...]))
         Param_names = Index[0,2::2].flatten()

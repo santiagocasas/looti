@@ -47,7 +47,7 @@ class FrameConstructor():
         df_temp = pd.DataFrame(data=observable, index=multiIndex1, columns=np.arange(1, len(k_array)+1))
         dataframe = pd.concat([dataframe, df_temp])
             
-        dataframe.loc["k_grid",:] = k_array
+        dataframe.loc["grid",:] = k_array
         
         return dataframe
 
@@ -85,7 +85,7 @@ class FrameConstructor():
             dataframe = pd.concat([dataframe, df_temp])
 
   
-        dataframe.loc["k_grid",:] = k_array
+        dataframe.loc["grid",:] = k_array
         
         return dataframe
     
@@ -105,7 +105,7 @@ class FrameConstructor():
         df_temp = pd.DataFrame(data=[observable], index=multiIndex1, columns=np.arange(1, len(z_array)+1))
         dataframe = pd.concat([dataframe, df_temp])
             
-        dataframe.loc["z_grid",:] = z_array
+        dataframe.loc["grid",:] = z_array
         
         return dataframe
     
@@ -135,7 +135,7 @@ class FrameConstructor():
             dataframe = pd.concat([dataframe, df_temp])
 
   
-        dataframe.loc["z_grid",:] = z_array
+        dataframe.loc["grid",:] = z_array
         
         return dataframe
 
