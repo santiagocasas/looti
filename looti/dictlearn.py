@@ -546,7 +546,7 @@ def Predict_ratio(emulation_data,
 
 def reconstruct_spectra(ratios_predicted,
                         emulation_data,
-                        normalization = False):
+                        normalization = True):
     """Reconstruct the spectra from ratios
      Args:
          ratios_predicted: a dictionary parameters -> ratios

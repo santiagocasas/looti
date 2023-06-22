@@ -76,7 +76,8 @@ class CosmoEmulator:
 
         predicted = intobj.predict(params_requested)
         prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
-                                                           emulation_data=emulation_data)
+                                                           emulation_data=emulation_data,
+                                                           normalization=True)
         
         fgrid = emulation_data.fgrid
 
