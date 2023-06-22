@@ -236,7 +236,9 @@ class DataHandle:
 
         if self.normalize_by_mean_std == True:
             binwise_mean = matrix_ratios_dict.mean(axis=0)
+            binwise_mean[binwise_mean==0.] = 1
             binwise_std = matrix_ratios_dict.std(axis=0)
+            binwise_std[binwise_std==0.] = 1
         else:
             binwise_mean = 0
             binwise_std = 1
@@ -274,6 +276,7 @@ class DataHandle:
         ## if ratio mode is not used, the spectra are divided by a reference spectrum
         if self.normalize_by_reference == True:
             reftheo = self.df_ref.loc[(self.data_type, z_request)].values
+            reftheo[reftheo==0.] = 1
         else:
             reftheo = 1
 

@@ -566,6 +566,7 @@ def reconstruct_spectra(ratios_predicted,
             LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, parameters[0]].values.flatten()
         else:
            LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, emulation_data.z_requested[0]].values.flatten()
+        LCDM_ref[LCDM_ref==0.] = 1
 
 
         if normalization == True:
@@ -690,6 +691,7 @@ def Interpolate_over_factor(emulation_data,
             LCDM_ref = emulation_data.df_ref.loc[x[0]].values.flatten()[pos_norm]
         else:
            LCDM_ref = emulation_data.df_ref.loc[emulation_data.z_requested].values.flatten()[pos_norm]
+        LCDM_ref[LCDM_ref==0.] = 1
         
         Y.append(y/LCDM_ref)
     Y = np.array(Y)

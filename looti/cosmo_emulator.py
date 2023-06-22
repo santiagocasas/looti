@@ -17,9 +17,9 @@ class CosmoEmulator:
         datafile_ext = cosmo_quantity
         datafile_ref = cosmo_quantity + '_ref'
 
-        emulation_data = dhl.DataHandle(datafile_ext,
-                                        data_folder,
-                                        datafile_ref,
+        emulation_data = dhl.DataHandle(extmodel_filename=datafile_ext,
+                                        data_dir=data_folder,
+                                        refmodel_filename=datafile_ref,
                                         num_parameters=n_params,
                                         data_type=cosmo_quantity,
                                         features_name=kwargs.get('features_name', 'grid'),
