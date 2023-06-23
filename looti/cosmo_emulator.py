@@ -100,9 +100,12 @@ class CosmoEmulator:
     def get_params(self, cosmo_quantity):
 
         emulation_data = self.data[cosmo_quantity]
-        params = list(emulation_data.paramnames_dict.values())
 
-        return params
+        params_dict = {}
+        for ii, param in enumerate(emulation_data.paramnames_dict.values()):
+            params_dict[param] = (emulation_data.train_samples[:,ii].min(), emulation_data.train_samples[:,ii].max())
+
+        return params_dict
     
 
     def get_info(self, cosmo_quantity):
