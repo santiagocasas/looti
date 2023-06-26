@@ -67,7 +67,7 @@ class CosmoEmulator:
         emulation_data = self.data[cosmo_quantity]
         intobj = self.intobjs[cosmo_quantity]
 
-        input_params = self.read_input_dict(input_dict, emulation_data)
+        input_params = self.read_input_dict(input_dict, cosmo_quantity)
 
         if redshift == None:
             params_requested = input_params.reshape(1, -1)
@@ -84,12 +84,18 @@ class CosmoEmulator:
         return fgrid, prediction_reconstructed[list(prediction_reconstructed.keys())[0]]
     
 
-    def read_input_dict(self, input_dict, emulation_data):
+    def read_input_dict(self, input_dict, cosmo_quantity):
+
+        limits_dict = self.get_params(cosmo_quantity)
+        paramnames_dict = self.data[cosmo_quantity].paramnames_dict
 
         input_params_list = []
-        for param in emulation_data.paramnames_dict.values():
+        for param in paramnames_dict.values():
             try:
-                input_params_list.append(input_dict[param])
+                if input_dict[param] >= limits_dict[param][0] and input_dict[param] <= limits_dict[param][1]:
+                    input_params_list.append(input_dict[param])
+                else:
+                    raise ValueError('Requested value for %s is outside of training region.' %param)
             except KeyError:
                 print('Missing input value for parameter:', param)
         input_params = np.array(input_params_list)
