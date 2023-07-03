@@ -11,11 +11,11 @@ class CosmoEmulator:
         self.intobjs = {}
 
 
-    def read_data(self, cosmo_quantity, data_path, n_params, n_train, n_test, **kwargs):
+    def read_data(self, cosmo_quantity, data_path, file_name, n_params, n_train, n_test, **kwargs):
 
         data_folder = data_path
-        datafile_ext = cosmo_quantity
-        datafile_ref = cosmo_quantity + '_ref'
+        datafile_ext = file_name
+        datafile_ref = file_name + '_ref'
 
         emulation_data = dhl.DataHandle(extmodel_filename=datafile_ext,
                                         data_dir=data_folder,
