@@ -24,6 +24,7 @@ class CosmoEmulator:
                                         data_type=cosmo_quantity,
                                         features_name=kwargs.get('features_name', 'grid'),
                                         features_to_Log=kwargs.get('features_to_Log', True),
+                                        observable_to_Log=kwargs.get('observable_to_Log', False),
                                         normalize_by_reference=True,
                                         normalize_by_mean_std=True) 
         emulation_data.read_csv_pandas()
@@ -78,7 +79,8 @@ class CosmoEmulator:
         predicted = intobj.predict(params_requested)
         prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
                                                            emulation_data=emulation_data,
-                                                           normalization=True)
+                                                           normalization=True,
+                                                           observable_to_Log=emulation_data.observable_to_Log)
         
         fgrid = emulation_data.fgrid
 

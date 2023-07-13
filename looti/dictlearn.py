@@ -594,7 +594,8 @@ def Predict_ratio(emulation_data,
 
 def reconstruct_spectra(ratios_predicted,
                         emulation_data,
-                        normalization = True):
+                        normalization=True,
+                        observable_to_Log=False):
     """Reconstruct the spectra from ratios
      Args:
          ratios_predicted: a dictionary parameters -> ratios
@@ -611,10 +612,16 @@ def reconstruct_spectra(ratios_predicted,
     for parameters in list(ratios_predicted.keys()):
        # ind = emulation_data.get_index_param(parameters,multiple_redshift=emulation_data.multiple_z)
         if emulation_data.multiple_z == True:
-            LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, parameters[0]].values.flatten()
+            LCDM_ref_raw = emulation_data.df_ref.loc[emulation_data.data_type, parameters[0]].values.flatten()
         else:
-           LCDM_ref = emulation_data.df_ref.loc[emulation_data.data_type, emulation_data.z_requested[0]].values.flatten()
-        LCDM_ref[LCDM_ref==0.] = 1
+           LCDM_ref_raw = emulation_data.df_ref.loc[emulation_data.data_type, emulation_data.z_requested[0]].values.flatten()
+        LCDM_ref_raw[LCDM_ref_raw==0.] = 1
+
+        if observable_to_Log == True:
+            LCDM_ref = np.log10(LCDM_ref_raw)
+            LCDM_ref[LCDM_ref_raw==0.] = 1
+        else:
+            LCDM_ref = LCDM_ref_raw
 
 
         if normalization == True:
@@ -624,7 +631,8 @@ def reconstruct_spectra(ratios_predicted,
             binwise_mean = 0
             binwise_std = 1
 
-        spectrum = (ratios_predicted[parameters] * binwise_std + binwise_mean) * LCDM_ref[emulation_data.mask_true]
+        spectrum_log = (ratios_predicted[parameters] * binwise_std + binwise_mean) * LCDM_ref[emulation_data.mask_true]
+        spectrum = np.power(10, spectrum_log)
         spectra[parameters] = spectrum
 
 

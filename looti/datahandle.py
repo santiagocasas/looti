@@ -79,6 +79,7 @@ class DataHandle:
                        features_name='k_grid',
                        z_name='zred',
                        features_to_Log=True,
+                       observable_to_Log=False,
                        data_type='tcl',
                        normalize_by_reference=True,
                        normalize_by_mean_std=True,
@@ -99,6 +100,7 @@ class DataHandle:
         self.z_str = z_name
         self.data_type = data_type
         self.features_to_Log=features_to_Log
+        self.observable_to_Log=observable_to_Log
         self.paramnames_dict = param_names_dict
 
         return None
@@ -277,10 +279,19 @@ class DataHandle:
         if self.normalize_by_reference == True:
             reftheo = self.df_ref.loc[(self.data_type, z_request)].values
             reftheo[reftheo==0.] = 1
+            if self.observable_to_Log == True:
+                reftheo = np.log10(reftheo)
+                reftheo[reftheo==0.] = 1
         else:
             reftheo = 1
 
-        matrix_z = self.df_ext.loc[self.data_type, z_request].values / reftheo
+        data_raw = self.df_ext.loc[self.data_type, z_request].values
+        if self.observable_to_Log == True:
+            data = np.log10(data_raw)
+        else:
+            data = data_raw
+
+        matrix_z = data / reftheo
 
         if _SAVING == True:
             self.matrix_ratios_dict = matrix_z
