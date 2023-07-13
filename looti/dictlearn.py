@@ -23,6 +23,7 @@ class LearningOperator:
         self._def_interp_type = 'GP'
         self._def_interp_dim = 1
         self._def_interp_opts = {'kind':'linear'}
+        self._def_mult_gp = False
         self._def_ncomp = 1
         self._def_dl_alpha = 0.001
         self._def_dl_tralgo = 'lasso_lars'
@@ -41,6 +42,7 @@ class LearningOperator:
         self.interp_type = kwargs.get('interp_type', self._def_interp_type)
         self.interp_dim = kwargs.get('interp_dim', self._def_interp_dim)
         self.interp_opts = kwargs.get('interp_opts', self._def_interp_opts)
+        self.mult_gp = kwargs.get('mult_gp', self._def_mult_gp)
         self.ncomp = kwargs.get('ncomp', self._def_ncomp)
         self.gp_n_rsts = kwargs.get('gp_n_rsts', self._def_gp_n_rsts)
         self.gp_const =  kwargs.get('gp_alpha', self._def_gp_const)
@@ -75,6 +77,7 @@ class LearnData:
         self.interp_type = self.operator.interp_type
         self.interp_dim  = self.operator.interp_dim
         self.interp_opts  = self.operator.interp_opts
+        self.mult_gp = self.operator.mult_gp
         self.ncomp       = self.operator.ncomp
         self.gp_n_rsts = self.operator.gp_n_rsts
         self.gp_const =  self.operator.gp_const
@@ -108,7 +111,6 @@ class LearnData:
         self.train_noise = train_noise
         if self.interp_type == "GP":
             self.CreateGP()
-            self.interpolator_func =  self.gp_regressor.fit
         else :
             self.interpolator_func = itp.Interpolators(self.interp_type, self.interp_dim, interp_opts=self.interp_opts)
         self.trainspace_mat = train_data
@@ -143,37 +145,21 @@ class LearnData:
     def PCAtraining(self, pca_norm):
         """Computing the PCA representation and contruct the interpolation over the PCA components"""
         pca=PCA(n_components=self.ncomp)
-        self.pca=pca## take n principal components
+        self.pca=pca
 
-        if pca_norm == True:
-            matPCA_raw=pca.fit(self.trainspace_mat).transform(self.trainspace_mat)
-            self.matPCA_mean = matPCA_raw.mean(axis=0)
-            self.matPCA_std = matPCA_raw.std(axis=0)
-            matPCA = (matPCA_raw - self.matPCA_mean) / self.matPCA_std
-        else:
-            matPCA=pca.fit(self.trainspace_mat).transform(self.trainspace_mat)
+        matPCA = self.PCAtransform(pca_norm=pca_norm)
 
-        ncomp=pca.n_components_
-        Vpca=pca.components_
-        meanvec=pca.mean_
-        self.pca_mean = meanvec
-        too.condprint("Shape of data matrix: "+str(self.trainspace_mat.shape), level=2, verbosity=self.verbosity)
-        too.condprint("Shape of PCA matrix: "+str(matPCA.shape), level=1, verbosity=self.verbosity)
-        too.condprint("Number of PCA components: "+str(ncomp), level=1, verbosity=self.verbosity)
-        too.condprint("Shape of PCA coefficients: "+str(Vpca.shape), level=2, verbosity=self.verbosity)
-        self.dictionary = Vpca
-        self.representation = matPCA
-        coeffsPCA=np.transpose(matPCA)
-        
-        self.trainspace_mean = self.trainspace.mean(axis=0)
-        self.trainspace_std = self.trainspace.std(axis=0)
-        self.trainspace_std[self.trainspace_std==0] = 1
-        self.trainspace_normed = (self.trainspace - self.trainspace_mean) / self.trainspace_std
+        trainspace_normed = self.normalize(self.trainspace)
+        self.trainspace_normed = trainspace_normed
 
         if self.interp_type == "GP":
-            self.gp_regressor.fit(self.trainspace_normed, matPCA)
-        else :
-
+            if self.mult_gp == True:
+                for comp, gp in enumerate(self.gp_dict.values()):
+                    gp.fit(self.trainspace_normed, matPCA[:,comp])
+            else:
+                self.gp_regressor.fit(self.trainspace_normed, matPCA)
+        else:
+            coeffsPCA = np.transpose(matPCA)
             interpolFuncsPCA_matrix=self.interpolator_func(self.trainspace_normed, coeffsPCA)
             self.interpol_matrix = interpolFuncsPCA_matrix
             return self.interpol_matrix ## matrix of interpolating functions at each feature
@@ -212,8 +198,18 @@ class LearnData:
 
         n_rsts = self.gp_n_rsts
         kernel = RBF(self.gp_length, self.gp_bounds)
-        self.gp_regressor = GaussianProcessRegressor(kernel=kernel ,
-                   n_restarts_optimizer=n_rsts, alpha=Y_noise)
+
+        if self.mult_gp == True:
+            gp_dict = {}
+            for comp in range(self.ncomp):
+                gp_dict['gp_%i' %(comp)] = GaussianProcessRegressor(kernel=kernel,
+                                                                    n_restarts_optimizer=n_rsts, 
+                                                                    alpha=Y_noise)
+            self.gp_dict = gp_dict
+        else:
+            self.gp_regressor = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=n_rsts, alpha=Y_noise)
+        
+        
 
 
     def GPtraining(self):
@@ -222,6 +218,52 @@ class LearnData:
         Y_train = self.trainspace_mat
         self.CreateGP()
         self.gp_regressor.fit(X_train, Y_train)
+
+
+    def PCAtransform(self, pca_norm):
+
+        pca=PCA(n_components=self.ncomp)
+        self.pca=pca ## take n principal components
+
+        matPCA_raw = pca.fit(self.trainspace_mat).transform(self.trainspace_mat)
+
+        if pca_norm == True:
+            self.matPCA_mean = matPCA_raw.mean(axis=0)
+            self.matPCA_std = matPCA_raw.std(axis=0)
+            matPCA = (matPCA_raw - self.matPCA_mean) / self.matPCA_std
+        else:
+            matPCA = matPCA_raw
+
+        Vpca = pca.components_
+        meanvec = pca.mean_
+        self.pca_mean = meanvec
+        self.dictionary = Vpca
+        self.representation = matPCA
+
+        too.condprint("Shape of data matrix: "+str(self.trainspace_mat.shape), level=2, verbosity=self.verbosity)
+        too.condprint("Shape of PCA matrix: "+str(matPCA.shape), level=1, verbosity=self.verbosity)
+        too.condprint("Number of PCA components: "+str(self.ncomp), level=1, verbosity=self.verbosity)
+        too.condprint("Shape of PCA coefficients: "+str(Vpca.shape), level=2, verbosity=self.verbosity)
+
+        return matPCA
+
+
+    def normalize(self, input_raw):
+
+        self.trainspace_mean = self.trainspace.mean(axis=0)
+        self.trainspace_std = self.trainspace.std(axis=0)
+        self.trainspace_std[self.trainspace_std==0] = 1
+        output_normed = (input_raw - self.trainspace_mean) / self.trainspace_std
+
+        return output_normed
+
+
+    def renormalize(self, input_normed):
+
+        output_raw = input_normed * self.trainspace_std + self.trainspace_mean
+
+        return output_raw
+
 
 
 
@@ -310,10 +352,16 @@ class LearnData:
             reco: spectra predicted
         """
         if self.method=="PCA":
-            parspace = (parspace - self.trainspace_mean) / self.trainspace_std
+            parspace = self.normalize(parspace)
             if self.interp_type == "GP":
-                self.interp_atoms_normed = self.gp_regressor.predict(parspace)
-            else :
+                if self.mult_gp == True:
+                    pred = []
+                    for gp in self.gp_dict.values():
+                        pred.append(list(gp.predict(parspace)))
+                    self.interp_atoms_normed = np.array(pred).T
+                else:
+                    self.interp_atoms_normed = self.gp_regressor.predict(parspace)
+            else:
                 self.interp_atoms_normed = self.interpolated_atoms(parspace)
 
             if pca_norm == True:

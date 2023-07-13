@@ -50,16 +50,17 @@ class CosmoEmulator:
 
         emulation_data = self.data[cosmo_quantity]
 
-        PCAop = dcl.LearningOperator(method='PCA', 
-                                     ncomp=kwargs.get('ncomp', 8), 
-                                     gp_n_rsts=kwargs.get('gp_n_rsts', 40), 
-                                     gp_length=kwargs.get('gp_length', np.ones(n_params)), 
+        PCAop = dcl.LearningOperator(method='PCA',
+                                     mult_gp=kwargs.get('mult_gp', False),
+                                     ncomp=kwargs.get('ncomp', 8),
+                                     gp_n_rsts=kwargs.get('gp_n_rsts', 40),
+                                     gp_length=kwargs.get('gp_length', np.ones(n_params)),
                                      verbosity=0)
         intobj = dcl.LearnData(PCAop)
         intobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
                            train_samples=emulation_data.train_samples)
 
-        self.intobjs[cosmo_quantity] = intobj    
+        self.intobjs[cosmo_quantity] = intobj
 
 
     def get_prediction(self, cosmo_quantity, input_dict, redshift=None):
