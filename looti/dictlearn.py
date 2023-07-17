@@ -632,11 +632,15 @@ def reconstruct_spectra(ratios_predicted,
             binwise_std = 1
 
         spectrum_log = (ratios_predicted[parameters] * binwise_std + binwise_mean) * LCDM_ref[emulation_data.mask_true]
-        spectrum = np.power(10, spectrum_log)
+        if observable_to_Log == True:
+            spectrum = np.power(10, spectrum_log)
+        else:
+            spectrum = spectrum_log
         spectra[parameters] = spectrum
 
 
     return spectra
+
 
 def RMSE_parameters(emulation_data,
               Operator = "GP",
