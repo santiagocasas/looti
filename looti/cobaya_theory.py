@@ -41,7 +41,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
             # If there exists path to trained intobj, read it
 
             if 'intobj_path' in self.extra_args['quantities'][quantity].keys():
-                self.read_intobj(quantity, self.extra_args['quantities'][quantity]['intobj_path'])
+                self.read_emulator(quantity, self.extra_args['quantities'][quantity]['intobj_path'])
 
             # Else, read data from csv files and train intobj
             print()
@@ -76,7 +76,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
             if req == 'Cl':
                 self._must_provide['Cl'] = {}
                 if 'tt' in v.keys():
-                    if not 'ttcl' in self.intobjs.keys():
+                    if not 'ttcl' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['tt']>self.get_info('ttcl')['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for TT are larger than the ones in the emulator (%d)", v['tt'], self.get_info('ttcl')['grid_max'])
@@ -86,7 +86,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                     else:
                         self._must_provide['Cl']['tt'] = v['tt'] 
                 elif 'te' in v.keys():
-                    if not 'tecl' in self.intobjs.keys():
+                    if not 'tecl' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['te']>self.intobjs['tecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for TE are larger than the ones in the emulator (%d)", v['te'], self.intobjs['tecl'].get_info['grid_max'])
@@ -96,7 +96,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                     else:
                         self._must_provide['Cl']['te'] = v['te']
                 elif 'ee' in v.keys():
-                    if not 'eecl' in self.intobjs.keys():
+                    if not 'eecl' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['ee']>self.intobjs['eecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for EE are larger than the ones in the emulator (%d)", v['ee'], self.intobjs['eecl'].get_info['grid_max'])

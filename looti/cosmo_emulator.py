@@ -8,7 +8,7 @@ class CosmoEmulator:
     def __init__(self):
 
         self.data = {}
-        self.intobjs = {}
+        self.emu_objs = {}
 
 
     def read_data(self, cosmo_quantity, data_path, file_name, n_params, n_train, n_test, **kwargs):
@@ -38,13 +38,13 @@ class CosmoEmulator:
         self.data[cosmo_quantity] = emulation_data
 
 
-    def read_intobj(self, cosmo_quantity, data_path, intobj_path):
+    def read_emulator(self, cosmo_quantity, data_path, emulator_path):
 
         emulation_data = pickle.load(open(data_path, 'rb'))
         self.data[cosmo_quantity] = emulation_data
 
-        intobj = pickle.load(open(intobj_path, 'rb'))
-        self.intobjs[cosmo_quantity] = intobj
+        emuobj = pickle.load(open(emulator_path, 'rb'))
+        self.emu_objs[cosmo_quantity] = emuobj
 
 
     def create_intobj(self, cosmo_quantity, n_params, **kwargs):
@@ -57,17 +57,17 @@ class CosmoEmulator:
                                      gp_n_rsts=kwargs.get('gp_n_rsts', 40),
                                      gp_length=kwargs.get('gp_length', np.ones(n_params)),
                                      verbosity=0)
-        intobj = dcl.LearnData(PCAop)
-        intobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
+        emuobj = dcl.LearnData(PCAop)
+        emuobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
                            train_samples=emulation_data.train_samples)
 
-        self.intobjs[cosmo_quantity] = intobj
+        self.emu_objs[cosmo_quantity] = emuobj
 
 
     def get_prediction(self, cosmo_quantity, input_dict, redshift=None):
 
         emulation_data = self.data[cosmo_quantity]
-        intobj = self.intobjs[cosmo_quantity]
+        emuobj = self.emu_objs[cosmo_quantity]
 
         input_params = self.read_input_dict(input_dict, cosmo_quantity)
 
@@ -76,7 +76,7 @@ class CosmoEmulator:
         else:
             params_requested = np.c_[redshift, np.tile(input_params, (len(redshift),1))]
 
-        predicted = intobj.predict(params_requested)
+        predicted = emuobj.predict(params_requested)
         prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
                                                            emulation_data=emulation_data,
                                                            normalization=True,
