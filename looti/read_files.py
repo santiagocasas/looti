@@ -22,11 +22,35 @@ class FrameConstructor():
         self.folders_path = Param_list["folders_path"]
         self.params_file = Param_list["params_file"]
         self.reference_folder = Param_list["reference_folder"]
+        self.save_path = Param_list["save_path"]
+        self.save_name = Param_list["save_name"]
 
         self.z_file_name = Param_list["z_file_name"]
         self.k_file_name = Param_list["k_file_name"]
         self.data_file_name = Param_list["data_file_name"]
         self.data_type = Param_list["data_type"]
+
+    def create_dataframe(self):
+        grid_param = self.data_file_name.split('.')[0][-1]
+
+        if grid_param == 'k':
+            df_ext = self.create_k_dataframe()
+            df_ext.to_csv(self.save_path+self.save_name+'.csv')
+            df_ref = self.create_k_reference_dataframe()
+            df_ref.to_csv(self.save_path+self.save_name+'_ref.csv')
+            
+        elif grid_param == 'z':
+            df_ext = self.create_z_dataframe()
+            df_ext.to_csv(self.save_path+self.save_name+'.csv')
+            df_ref = self.create_z_reference_dataframe()
+            df_ref.to_csv(self.save_path+self.save_name+'_ref.csv')
+
+        params_varying = list(self.read_config(self.folders_path, self.reference_folder, self.params_file).keys())
+        print('Number of parameters varying:', len(params_varying))
+        print('Parameters:', params_varying)
+        print('Number of samples in dataset:', self.n_samples)
+        print('Dataframe saved to:', self.save_path+self.save_name+'.csv')
+        print('Reference dataframe saved to:', self.save_path+self.save_name+'_ref.csv')
 
 
     def create_k_reference_dataframe(self):
@@ -144,6 +168,7 @@ class FrameConstructor():
         # folders = os.listdir(path + folder)
         folders = [f.name for f in os.scandir(folder_path) if f.is_dir()]
         folders.remove(self.reference_folder)
+        self.n_samples = len(folders)
         return folders
 
 
