@@ -32,7 +32,9 @@ class CosmoEmulator:
         emulation_data.calculate_data_split(n_train=n_train,
                                             n_test=n_test,
                                             verbosity=0,
-                                            manual_split=True)
+                                            manual_split=True,
+                                            train_redshift_indices=kwargs.get('redshifts', [0]),
+                                            test_redshift_indices=kwargs.get('redshifts', [0]))
         emulation_data.data_split(verbosity=0)
         
         self.data[cosmo_quantity] = emulation_data
@@ -47,7 +49,7 @@ class CosmoEmulator:
         self.emu_objs[cosmo_quantity] = emuobj
 
 
-    def create_intobj(self, cosmo_quantity, n_params, **kwargs):
+    def create_emulator(self, cosmo_quantity, n_params, **kwargs):
 
         emulation_data = self.data[cosmo_quantity]
 
@@ -93,7 +95,7 @@ class CosmoEmulator:
         paramnames_dict = self.data[cosmo_quantity].paramnames_dict
 
         input_params_list = []
-        for param in paramnames_dict.values():
+        for param in limits_dict.keys():
             try:
                 if input_dict[param] >= limits_dict[param][0] and input_dict[param] <= limits_dict[param][1]:
                     input_params_list.append(input_dict[param])
@@ -109,9 +111,13 @@ class CosmoEmulator:
     def get_params(self, cosmo_quantity):
 
         emulation_data = self.data[cosmo_quantity]
+        if emulation_data.multiple_z:
+            paramnames = ['redshift'] + list(emulation_data.paramnames_dict.values())
+        else:
+            paramnames = list(emulation_data.paramnames_dict.values())
 
         params_dict = {}
-        for ii, param in enumerate(emulation_data.paramnames_dict.values()):
+        for ii, param in enumerate(paramnames):
             params_dict[param] = (emulation_data.train_samples[:,ii].min(), emulation_data.train_samples[:,ii].max())
 
         return params_dict
