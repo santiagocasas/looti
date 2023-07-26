@@ -1,6 +1,7 @@
 data/
 interpolators/
 plots/
+notebooks_additional/
 
 
 # Byte-compiled / optimized / DLL files
