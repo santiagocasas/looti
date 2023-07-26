@@ -106,7 +106,15 @@ class CosmoEmulator:
         input_params = np.array(input_params_list)
 
         return input_params
-    
+
+
+    def get_fgrid(self, cosmo_quantity):
+
+        emulation_data = self.data[cosmo_quantity]
+        fgrid = emulation_data.fgrid
+
+        return fgrid
+
 
     def get_params(self, cosmo_quantity):
 
