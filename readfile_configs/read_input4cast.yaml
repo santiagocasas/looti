@@ -4,17 +4,20 @@ folders_path: ../../input4cast/rwth_output/rwth_output/class_Asw0wa_DP_hypel/   
 params_file: cosmo_varying.ini                                                  ## config file containing the specific values per run
 reference_folder: '0000'                                                        ## folder containing output for fiducial values
 save_path: ../training_data/                                                    ## path where dataframes are saved
-save_name: Plin_test                                                            ## file name under which the dataframes are saved
+save_name: class_Asw0wa_DP_hypel                                                ## file name under which the dataframes are saved
 
 z_file_name: z_values_list.txt        ## file containing the list of redshift values
 k_file_name: k_values_list.txt        ## file containing the list of k values
-data_file_name: Plin-zk.txt           ## file containing the observable
+data_file_names:                       ## files containing the observables
+- Plin-zk.txt
+- Pnonlin-zk.txt
+- f_GrowthRate-zk.txt
+- sigma8-z.txt
+- background_Hz.txt
 
-data_type: Plin
-# - Pnonlin
-# - D_Growth
-# - f_GrowthRate
-# - sigmaWL
-# - sigma8
-# - background_DA
-# - background_H
+data_types:
+- Plin
+- Pnonlin
+- f_GrowthRate
+- sigma8
+- background_H

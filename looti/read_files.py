@@ -27,44 +27,52 @@ class FrameConstructor():
 
         self.z_file_name = Param_list["z_file_name"]
         self.k_file_name = Param_list["k_file_name"]
-        self.data_file_name = Param_list["data_file_name"]
-        self.data_type = Param_list["data_type"]
-
-    def create_dataframe(self):
-        grid_param = self.data_file_name.split('.')[0][-1]
-
-        if grid_param == 'k':
-            df_ext = self.create_k_dataframe()
-            df_ext.to_csv(self.save_path+self.save_name+'.csv')
-            df_ref = self.create_k_reference_dataframe()
-            df_ref.to_csv(self.save_path+self.save_name+'_ref.csv')
-            
-        elif grid_param == 'z':
-            df_ext = self.create_z_dataframe()
-            df_ext.to_csv(self.save_path+self.save_name+'.csv')
-            df_ref = self.create_z_reference_dataframe()
-            df_ref.to_csv(self.save_path+self.save_name+'_ref.csv')
-
-        params_varying = list(self.read_config(self.folders_path, self.reference_folder, self.params_file).keys())
-        print('Number of parameters varying:', len(params_varying))
-        print('Parameters:', params_varying)
-        print('Number of samples in dataset:', self.n_samples)
-        print('Dataframe saved to:', self.save_path+self.save_name+'.csv')
-        print('Reference dataframe saved to:', self.save_path+self.save_name+'_ref.csv')
+        self.data_file_names = Param_list["data_file_names"]
+        self.data_types = Param_list["data_types"]
 
 
-    def create_k_reference_dataframe(self):
+    def create_dataframes(self):
+
+        for file_name, data_type in zip(self.data_file_names, self.data_types):
+
+            save_data_string = self.save_path+self.save_name+'_'+data_type+'.csv'
+            save_ref_string = self.save_path+self.save_name+'_'+data_type+'_ref.csv'
+            grid_param = file_name.split('.')[0][-1]
+
+            if grid_param == 'k':
+                df_ext = self.create_k_dataframe(file_name, data_type)
+                df_ext.to_csv(save_data_string)
+                df_ref = self.create_k_reference_dataframe(file_name, data_type)
+                df_ref.to_csv(save_ref_string)
+                
+            elif grid_param == 'z':
+                df_ext = self.create_z_dataframe(file_name, data_type)
+                df_ext.to_csv(save_data_string)
+                df_ref = self.create_z_reference_dataframe(file_name, data_type)
+                df_ref.to_csv(save_ref_string)
+
+            self.params_varying = list(self.read_config(self.folders_path, self.reference_folder, self.params_file).keys())
+            print(data_type)
+            print('Number of parameters varying:', len(self.params_varying))
+            print('Parameters:', self.params_varying)
+            print('Number of samples in dataset:', self.n_samples)
+            print('Dataframe saved to:', save_data_string)
+            print('Reference dataframe saved to:', save_ref_string)
+            print('------------------------------------------')
+
+
+    def create_k_reference_dataframe(self, data_file_name, data_type):
 
         dataframe = pd.DataFrame()
         folder = self.reference_folder
 
-        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
+        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, data_file_name)
 
         names = ['data_type', 'redshift']
 
         values = []
         for zz in z_array:
-            temp = [self.data_type, zz]
+            temp = [data_type, zz]
             values.append(temp)
 
         multiIndex1 = pd.MultiIndex.from_tuples(values, names=names)
@@ -76,7 +84,7 @@ class FrameConstructor():
         return dataframe
 
 
-    def create_k_dataframe(self):
+    def create_k_dataframe(self, data_file_name, data_type):
         folders = self.read_folder(self.folders_path)
 
         dataframe = pd.DataFrame()
@@ -85,7 +93,7 @@ class FrameConstructor():
             config_dict = self.read_config(self.folders_path, folder, self.params_file)
             # params_dict = self.create_parameter_dictionary(pars_dict, config_dict)
 
-            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
+            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, data_file_name)
 
             names = ['data_type', 'redshift']
             for i, pp in enumerate(config_dict.keys()): ## pars_dict
@@ -94,7 +102,7 @@ class FrameConstructor():
 
             values = []
             for zz in z_array:
-                temp = [self.data_type, zz]
+                temp = [data_type, zz]
                 for p, v in zip(config_dict.keys(), config_dict.values()): ## pars_dict, pars_dict
                     temp.append(p)
                     temp.append(v)
@@ -114,17 +122,16 @@ class FrameConstructor():
         return dataframe
     
 
-    def create_z_reference_dataframe(self):
+    def create_z_reference_dataframe(self, data_file_name, data_type):
 
         dataframe = pd.DataFrame()
         folder = self.reference_folder
 
-        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, self.data_file_name)
+        z_array, k_array, observable = self.read_files(self.folders_path, folder, self.z_file_name, self.k_file_name, data_file_name)
 
         names = ['data_type', 'redshift']
 
-        values = [self.data_type, 0.0]
-        print(observable.shape)
+        values = [data_type, 0.0]
         multiIndex1 = pd.MultiIndex.from_tuples([values], names=names)
         df_temp = pd.DataFrame(data=[observable], index=multiIndex1, columns=np.arange(1, len(z_array)+1))
         dataframe = pd.concat([dataframe, df_temp])
@@ -134,7 +141,7 @@ class FrameConstructor():
         return dataframe
     
 
-    def create_z_dataframe(self):
+    def create_z_dataframe(self, data_file_name, data_type):
         folders = self.read_folder(self.folders_path)
 
         dataframe = pd.DataFrame()
@@ -142,14 +149,14 @@ class FrameConstructor():
 
             config_dict = self.read_config(self.folders_path, folder, self.params_file)
 
-            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, self.data_file_name)
+            z_array, k_array, observable = self.read_files(self.folders_path, folder,  self.z_file_name, self.k_file_name, data_file_name)
 
             names = ['data_type', 'redshift']
             for i, pp in enumerate(config_dict.keys()):
                 names.append('parameter_' + str(i+1))
                 names.append('parameter_' + str(i+1) + '_value')
 
-            values = [self.data_type, 0.0]
+            values = [data_type, 0.0]
             for p, v in zip(config_dict.keys(), config_dict.values()):
                 values.append(p)
                 values.append(v)
@@ -205,3 +212,31 @@ class FrameConstructor():
         observable  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
 
         return z_array, k_array, observable
+    
+
+    def filter_redshift(self, save_path, redshift=0, n_params=None):
+
+        if n_params == None:
+            n_params = len(self.params_varying)
+
+        n_index = 2 + 2 * n_params
+
+        for data_type in self.data_types:
+
+            df_all = pd.read_csv(self.save_path+self.save_name+'_'+data_type+'.csv', index_col=list(range(n_index)))
+            df_all_ref = pd.read_csv(self.save_path+self.save_name+'_'+data_type+'_ref.csv', index_col=list(range(2)))
+
+            df_data = df_all[df_all.index.get_level_values('redshift')==redshift]
+            df_data_ref = df_all_ref[df_all_ref.index.get_level_values('redshift')==redshift]
+
+            df_grid = df_all[df_all.index.get_level_values('data_type')=='grid']
+            df_grid_ref = df_all_ref[df_all_ref.index.get_level_values('data_type')=='grid']
+
+            df_z0 = pd.concat([df_data, df_grid])
+            df_z0_ref = pd.concat([df_data_ref, df_grid_ref])
+
+            df_z0.to_csv(save_path+data_type+'.csv')
+            df_z0_ref.to_csv(save_path+data_type+'_ref.csv')
+
+            print('%s at redshift %f saved under %s' %(data_type, redshift, save_path+data_type+'.csv'))
+            print('Reference %s at redshift %f saved under %s' %(data_type, redshift, save_path+data_type+'_ref.csv'))
