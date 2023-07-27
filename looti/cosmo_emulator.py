@@ -40,10 +40,7 @@ class CosmoEmulator:
         self.data[cosmo_quantity] = emulation_data
 
 
-    def read_emulator(self, cosmo_quantity, data_path, emulator_path):
-
-        emulation_data = pickle.load(open(data_path, 'rb'))
-        self.data[cosmo_quantity] = emulation_data
+    def read_emulator(self, cosmo_quantity, emulator_path):
 
         emuobj = pickle.load(open(emulator_path, 'rb'))
         self.emu_objs[cosmo_quantity] = emuobj
@@ -60,15 +57,13 @@ class CosmoEmulator:
                                      gp_length=kwargs.get('gp_length', np.ones(n_params)),
                                      verbosity=0)
         emuobj = dcl.LearnData(PCAop)
-        emuobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
-                           train_samples=emulation_data.train_samples)
+        emuobj.interpolate(emulation_data = emulation_data)
 
         self.emu_objs[cosmo_quantity] = emuobj
 
 
     def get_prediction(self, cosmo_quantity, input_dict, redshift=None):
 
-        emulation_data = self.data[cosmo_quantity]
         emuobj = self.emu_objs[cosmo_quantity]
 
         input_params = self.read_input_dict(input_dict, cosmo_quantity)
@@ -79,12 +74,10 @@ class CosmoEmulator:
             params_requested = np.c_[redshift, np.tile(input_params, (len(redshift),1))]
 
         predicted = emuobj.predict(params_requested)
-        prediction_reconstructed = dcl.reconstruct_spectra(ratios_predicted=predicted, 
-                                                           emulation_data=emulation_data,
-                                                           normalization=True,
-                                                           observable_to_Log=emulation_data.observable_to_Log)
+        prediction_reconstructed = emuobj.reconstruct_spectra(ratios_predicted=predicted,
+                                                           normalization=True)
         
-        fgrid = emulation_data.fgrid
+        fgrid = emuobj.fgrid
 
         return fgrid, prediction_reconstructed[list(prediction_reconstructed.keys())[0]]
     
@@ -92,7 +85,6 @@ class CosmoEmulator:
     def read_input_dict(self, input_dict, cosmo_quantity):
 
         limits_dict = self.get_params(cosmo_quantity)
-        paramnames_dict = self.data[cosmo_quantity].paramnames_dict
 
         input_params_list = []
         for param in limits_dict.keys():
@@ -110,23 +102,16 @@ class CosmoEmulator:
 
     def get_fgrid(self, cosmo_quantity):
 
-        emulation_data = self.data[cosmo_quantity]
-        fgrid = emulation_data.fgrid
+        emuobj = self.emu_objs[cosmo_quantity]
+        fgrid = emuobj.fgrid
 
         return fgrid
 
 
     def get_params(self, cosmo_quantity):
 
-        emulation_data = self.data[cosmo_quantity]
-        if emulation_data.multiple_z:
-            paramnames = ['redshift'] + list(emulation_data.paramnames_dict.values())
-        else:
-            paramnames = list(emulation_data.paramnames_dict.values())
-
-        params_dict = {}
-        for ii, param in enumerate(paramnames):
-            params_dict[param] = (emulation_data.train_samples[:,ii].min(), emulation_data.train_samples[:,ii].max())
+        emuobj = self.emu_objs[cosmo_quantity]
+        params_dict = emuobj.params_dict
 
         return params_dict
     

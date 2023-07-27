@@ -98,15 +98,16 @@ class LearnData:
         self.verbosity = self.operator.verbosity
         return None
 
-    def interpolate(self, train_data=[], train_samples=[], train_noise=[False], pca_norm=True):
+    def interpolate(self, emulation_data, train_noise=[False], pca_norm=True):
         """Construct the interpolation between the paremeters and the spectra of the training set.
         Args:
             train_data: spectra 
             train_samples: parameters, may includes redshift
             train_noise: Noise level for GP inteprolator
         """
-        
-        
+        train_data = emulation_data.matrix_datalearn_dict['train']
+        train_samples = emulation_data.train_samples
+        self.set_attributes(emulation_data)
         
         self.train_noise = train_noise
         if self.interp_type == "GP":
@@ -131,6 +132,28 @@ class LearnData:
         else:
             raise ValueError("Error: Method inexistent or not yet implemented.")
 
+
+    def set_attributes(self, emulation_data):
+
+        self.fgrid = emulation_data.fgrid
+        self.observable_to_Log = emulation_data.observable_to_Log
+        self.multiple_z = emulation_data.multiple_z
+        self.df_ref = emulation_data.df_ref
+        self.data_type = emulation_data.data_type
+        self.z_requested = emulation_data.z_requested
+        self.binwise_mean = emulation_data.binwise_mean
+        self.binwise_std = emulation_data.binwise_std
+        self.mask_true = emulation_data.mask_true
+
+        if self.multiple_z:
+            paramnames = ['redshift'] + list(emulation_data.paramnames_dict.values())
+        else:
+            paramnames = list(emulation_data.paramnames_dict.values())
+
+        params_dict = {}
+        for ii, param in enumerate(paramnames):
+            params_dict[param] = (emulation_data.train_samples[:,ii].min(), emulation_data.train_samples[:,ii].max())
+        self.params_dict = params_dict
 
 
     def LINtraining(self):
@@ -388,6 +411,51 @@ class LearnData:
             reco=self.OT.OT_Algorithm(parspace,self.operator.ot_xgrids)
         return reco
 
+
+    def reconstruct_spectra(self, ratios_predicted, normalization=True):
+        """Reconstruct the spectra from ratios
+        Args:
+            ratios_predicted: a dictionary parameters -> ratios
+            normalization: if True would assume that a normalization has been carried out and that a denormalization
+            is required to reconstruct the spectra. To do so, it would interpolate the p_k(k =pos_norm) of train vectors
+            pos_norm: the position where the normalisation factor is expected to have been computed(see datahandle)
+        Returns:
+            spectra: spectra reconstructed"""
+        
+        
+        spectra={}
+
+        for parameters in list(ratios_predicted.keys()):
+            if self.multiple_z == True:
+                LCDM_ref_raw = self.df_ref.loc[self.data_type, parameters[0]].values.flatten()
+            else:
+                LCDM_ref_raw = self.df_ref.loc[self.data_type, self.z_requested[0]].values.flatten()
+            LCDM_ref_raw[LCDM_ref_raw==0.] = 1
+
+            if self.observable_to_Log == True:
+                LCDM_ref = np.log10(LCDM_ref_raw)
+                LCDM_ref[LCDM_ref_raw==0.] = 1
+            else:
+                LCDM_ref = LCDM_ref_raw
+
+
+            if normalization == True:
+                binwise_mean = self.binwise_mean
+                binwise_std = self.binwise_std
+            else:
+                binwise_mean = 0
+                binwise_std = 1
+
+            spectrum_log = (ratios_predicted[parameters] * binwise_std + binwise_mean) * LCDM_ref[self.mask_true]
+            if self.observable_to_Log == True:
+                spectrum = np.power(10, spectrum_log)
+            else:
+                spectrum = spectrum_log
+            spectra[parameters] = spectrum
+
+        return spectra
+
+
     @staticmethod
     def matrixdata_to_dict(data_mat, data_space):
         """Construct a dictionary parameters -> spectra
@@ -400,7 +468,6 @@ class LearnData:
         for vv,dd in zip(data_space, data_mat):
             matdata_dict[tuple(np.array([vv]).flatten())] = dd
         return matdata_dict
-
 
 
 
