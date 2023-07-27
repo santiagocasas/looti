@@ -26,25 +26,14 @@ class LootiFish(CosmoEmulator):
                                        )
         
         #self.z_grid = training_args['quantities']['z_grid']
-        self.z_grid = 
+        self.z_grid =  self.get_fgrid('background_H')
+        self.k_grid =  self.get_fgrid('Plin')
         return None
 
     def set_args(self, kwargs):
         self.training_args = kwargs
                 
-    def get_kgrid(self, params_values_dict, units="Mpc"):
-        # Get Pk from intobj
-        kgrid, Pk = self.get_prediction(cosmo_quantity='Plin',
-                                        input_dict=params_values_dict)
-        return kgrid 
-    
-    def get_zgrid(self, params_values_dict, units="Mpc"):
-        # Get Pk from intobj
-        zgrid, Hub = self.get_prediction(cosmo_quantity='background_H',
-                                        input_dict=params_values_dict)
-        return zgrid 
-    
-    def compute_Pk(self, params_values_dict, nonlinear=False, units="Mpc"):
+    def compute_P(self, params_values_dict, nonlinear=False, units="Mpc"):
         # Get Pk from intobj
         if nonlinear == False:
             kgrid, Pk = self.get_prediction(cosmo_quantity='Plin',
@@ -58,5 +47,25 @@ class LootiFish(CosmoEmulator):
             Pkz[ii, :] = Pk
         
         return Pkz
+    
+    def compute_fGrowthRate(self, params_values_dict, units="Mpc"):
+        kgrid, fk = self.get_prediction(cosmo_quantity='f_GrowthRate',
+                                            input_dict=params_values_dict)
+        
+        fkz = np.array((len(self.z_grid), len(kgrid)))
+        for ii,zz in enumerate(self.z_grid):
+            fkz[ii, :] = fk
+        
+        return fkz
                 
+    def compute_background_H(self, params_values_dict, units="Mpc"):
+        zgrid, Hz = self.get_prediction(cosmo_quantity='background_H',
+                                            input_dict=params_values_dict)
+        
+        return Hz
 
+    def compute_sigma8(self, params_values_dict, units="Mpc"):
+        zgrid, s8z = self.get_prediction(cosmo_quantity='background_H',
+                                            input_dict=params_values_dict)
+        ## Make test of zgrid against z_grid
+        return s8z
