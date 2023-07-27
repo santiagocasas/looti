@@ -15,7 +15,9 @@ class LootiFish(CosmoEmulator):
         super().__init__()
         self.training_args = training_args
         # Read data from path/csv files for each cosmological quantity in extra_args
-        self.must_provide = ['Plin', 'Pnonlin', 'sigma8', 'f_GrowthRate', 'background_H']
+        self.must_provide = ['Plin', 'Pnonlin', 'sigma8', 'f_GrowthRate', 
+                             #'D_Growth', 
+                             'background_H']
         for quantity in self.training_args['quantities']:
             if quantity in self.must_provide:
             # If there exists path to trained intobj, read it
@@ -57,6 +59,16 @@ class LootiFish(CosmoEmulator):
             fkz[ii, :] = fk
         
         return fkz
+    
+    def compute_DGrowth(self, params_values_dict, units="Mpc"):
+        kgrid, Dk = self.get_prediction(cosmo_quantity='D_Growth',
+                                            input_dict=params_values_dict)
+        
+        Dkz = np.array((len(self.z_grid), len(kgrid)))
+        for ii,zz in enumerate(self.z_grid):
+            Dkz[ii, :] = Dk
+        
+        return Dkz
                 
     def compute_background_H(self, params_values_dict, units="Mpc"):
         zgrid, Hz = self.get_prediction(cosmo_quantity='background_H',
