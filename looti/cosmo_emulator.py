@@ -40,9 +40,9 @@ class CosmoEmulator:
         self.data[cosmo_quantity] = emulation_data
 
 
-    def read_emulator(self, cosmo_quantity, emulator_path):
+    def read_emulator(self, cosmo_quantity, directory):
 
-        emuobj = pickle.load(open(emulator_path, 'rb'))
+        emuobj = pickle.load(open(directory + cosmo_quantity + '.sav', 'rb'))
         self.emu_objs[cosmo_quantity] = emuobj
 
 
