@@ -30,7 +30,6 @@ class LootiFish(CosmoEmulator):
         #self.z_grid = training_args['quantities']['z_grid']
         self.z_grid =  self.get_fgrid('background_H')
         self.k_grid =  self.get_fgrid('Plin')
-        return None
 
     def set_args(self, kwargs):
         self.training_args = kwargs
