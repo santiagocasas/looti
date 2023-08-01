@@ -12,22 +12,23 @@ class LootiFish(CosmoEmulator):
 
 
     def __init__(self, training_args=dict()):
-        super().__init__()
         self.training_args = training_args
+        external_info = training_args['external_info']
+        super().__init__(external_info=external_info)
         # Read data from path/csv files for each cosmological quantity in extra_args
-        self.must_provide = ['Plin', 'Pnonlin', 'sigma8', 'f_GrowthRate', 
-                             #'D_Growth', 
+        self.must_provide = ['Plin', 'Pnonlin', 'sigma8', 
+                             'f_GrowthRate', 'D_Growth', 
                              'background_H']
+        self.directory = self.training_args['directory']
         for quantity in self.training_args['quantities']:
             if quantity in self.must_provide:
             # If there exists path to trained intobj, read it
-                if 'emulator_path' in self.training_args['quantities'][quantity].keys():
-                    self.read_emulator(cosmo_quantity=quantity, 
-                                       data_path=self.training_args['quantities'][quantity]['data_path'],
-                                       emulator_path=self.training_args['quantities'][quantity]['emulator_path']
-                                       )
-        
-        #self.z_grid = training_args['quantities']['z_grid']
+                self.read_emulator(cosmo_quantity=quantity, 
+                                   directory=self.directory
+                                  )
+        self.cosmo_params = self.training_args['parameters']
+        self.cosmo_param_basis = self.training_args['parameter_basis'] 
+        self.P_z_values = []
         self.z_grid =  self.get_fgrid('background_H')
         self.k_grid =  self.get_fgrid('Plin')
 
@@ -37,46 +38,53 @@ class LootiFish(CosmoEmulator):
     def compute_P(self, params_values_dict, nonlinear=False, units="Mpc"):
         # Get Pk from intobj
         if nonlinear == False:
-            kgrid, Pk = self.get_prediction(cosmo_quantity='Plin',
+            z_vals, kgrid, Pk = self.get_prediction(cosmo_quantity='Plin',
                                             input_dict=params_values_dict)
         elif nonlinear ==  True:
-            kgrid, Pk = self.get_prediction(cosmo_quantity='Pnonlin',
+            z_vals, kgrid, Pk = self.get_prediction(cosmo_quantity='Pnonlin',
                                             input_dict=params_values_dict)
         
-        Pkz = np.array((len(self.z_grid), len(kgrid)))
-        for ii,zz in enumerate(self.z_grid):
-            Pkz[ii, :] = Pk
+        self.P_z_values = z_vals
+        #print(len(z_vals))
+        #print(len(kgrid))
+        Pkz = np.empty((len(z_vals), len(kgrid)))
+        #print(Pkz.shape)
+        for ii, zz in enumerate(z_vals):
+            #print(Pk[ii].shape)
+            Pkz[ii, :] = Pk[ii]
         
         return Pkz
     
     def compute_fGrowthRate(self, params_values_dict, units="Mpc"):
-        kgrid, fk = self.get_prediction(cosmo_quantity='f_GrowthRate',
+        z_vals, kgrid, fk = self.get_prediction(cosmo_quantity='f_GrowthRate',
                                             input_dict=params_values_dict)
         
-        fkz = np.array((len(self.z_grid), len(kgrid)))
-        for ii,zz in enumerate(self.z_grid):
-            fkz[ii, :] = fk
+        self.fGrowthRate_z_values = z_vals
+        fkz = np.empty((len(z_vals), len(kgrid)))
+        for ii,zz in enumerate(z_vals):
+            fkz[ii, :] = fk[ii]
         
         return fkz
     
     def compute_DGrowth(self, params_values_dict, units="Mpc"):
-        kgrid, Dk = self.get_prediction(cosmo_quantity='D_Growth',
+        z_vals, kgrid, Dk = self.get_prediction(cosmo_quantity='D_Growth',
                                             input_dict=params_values_dict)
         
-        Dkz = np.array((len(self.z_grid), len(kgrid)))
-        for ii,zz in enumerate(self.z_grid):
-            Dkz[ii, :] = Dk
+        self.DGrowth_z_values = z_vals
+        Dkz = np.empty((len(z_vals), len(kgrid)))
+        for ii,zz in enumerate(z_vals):
+            Dkz[ii, :] = Dk[ii]
         
         return Dkz
                 
     def compute_background_H(self, params_values_dict, units="Mpc"):
-        zgrid, Hz = self.get_prediction(cosmo_quantity='background_H',
+        z_vals, zgrid, Hz = self.get_prediction(cosmo_quantity='background_H',
                                             input_dict=params_values_dict)
-        
-        return Hz
+        ## get prediction returns a list of Hz at z_vals
+        # # in this case z_vals=[0] and the list has one element 
+        return Hz[0]
 
     def compute_sigma8(self, params_values_dict, units="Mpc"):
-        zgrid, s8z = self.get_prediction(cosmo_quantity='background_H',
+        z_vals, zgrid, s8z = self.get_prediction(cosmo_quantity='sigma8',
                                             input_dict=params_values_dict)
-        ## Make test of zgrid against z_grid
-        return s8z
+        return s8z[0]
