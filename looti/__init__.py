@@ -25,15 +25,16 @@ This package makes use of the following third-party packages:
 
 from warnings import warn
 
-from importlib_metadata import version
-
-try:
-    _version = version('looti')
-except Exception:  # pragma: no cover
-    _version = 'Unkown'
-    warn(
-        'Could not extract package metadata. Make sure the package is '
-        + 'correctly installed.',
-    )
-
-__version__ = _version
+# SG: Following lines lead cobaya to break down
+#from importlib_metadata import version
+#
+#try:
+#    _version = version('looti')
+#except Exception:  # pragma: no cover
+#    _version = 'Unkown'
+#    warn(
+#        'Could not extract package metadata. Make sure the package is '
+#        + 'correctly installed.',
+#    )
+#
+#__version__ = _version

@@ -60,8 +60,7 @@ class CosmoEmulator:
                                      gp_length=kwargs.get('gp_length', np.ones(n_params)),
                                      verbosity=0)
         emuobj = dcl.LearnData(PCAop)
-        emuobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
-                           train_samples=emulation_data.train_samples)
+        emuobj.interpolate(emulation_data=emulation_data)
 
         self.emu_objs[cosmo_quantity] = emuobj
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from looti.cosmo_emulator import CosmoEmulator
+from looti.cosmo_emulator_cobaya import CosmoEmulator
 from cobaya.theories.cosmo import BoltzmannBase
 
 from collections import deque
@@ -22,6 +22,8 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         self._input_params_extra = set()
         self._states = deque()
         self._must_provide = set()
+
+        self._name = 'looti'
 
         self.set_logger('looti')
         self.set_timing_on(True)
@@ -56,7 +58,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                             **self.extra_args['quantities'][quantity].get('kwargs', {}))
 
             # Train with create intobj
-            self.create_intobj(quantity, 
+            self.create_emulator(quantity, 
                                n_params = self.extra_args['quantities'][quantity]['n_params'], 
                                **self.extra_args['quantities'][quantity].get('kwargs', {}))
             
