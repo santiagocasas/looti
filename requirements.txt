@@ -1,9 +1,10 @@
-importlib_metadata==3.1.1
+importlib_metadata>=4.8
+jsonschema>=4.17.3
+tornado>=6.2.0
 numpy
 scipy
 pandas
 ipython
-jupyter
 matplotlib
 scikit-learn
 pyyaml

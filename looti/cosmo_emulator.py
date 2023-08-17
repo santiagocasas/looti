@@ -1,5 +1,6 @@
 from looti import datahandle as dhl
 from looti import dictlearn as dcl
+from looti import read_files as rf
 import numpy as np
 import pickle
 from glob import glob 
@@ -11,6 +12,23 @@ class CosmoEmulator:
         self.data = {}
         self.emu_objs = {}
         self.external_info = external_info
+        self.config_yaml = self.external_info['config_yaml']
+        self.FileReader = rf.FileReader(path_config_file=self.config_yaml)
+
+    def create_dataframes(self):
+        self.FileReader.create_dataframes()
+        self.params_varying = self.FileReader.params_varying
+        self.n_params = len(self.params_varying)
+        self.data_path = self.FileReader.save_path
+        self.data_types = self.FileReader.data_types
+        self.n_samples = self.FileReader.n_samples
+        self.n_training_samples = self.FileReader.n_training_samples
+        self.n_test_samples = self.FileReader.n_test_samples
+
+    
+    def read_dataframes(self):
+        #for quantity in zip(self.data_types, self.data_path)
+        return None
 
 
     def read_data(self, cosmo_quantity, data_path, file_name, n_params, n_train, n_test, **kwargs):
@@ -63,7 +81,7 @@ class CosmoEmulator:
     def create_emulator(self, cosmo_quantity, n_params, **kwargs):
 
         emulation_data = self.data[cosmo_quantity]
-
+        
         PCAop = dcl.LearningOperator(method='PCA',
                                      mult_gp=kwargs.get('mult_gp', False),
                                      ncomp=kwargs.get('ncomp', 8),

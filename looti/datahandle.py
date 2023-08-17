@@ -72,6 +72,7 @@ class DataHandle:
                        data_dir,
                        refmodel_filename=None,
                        csv_data=True,
+                       csv_zip=True,
                        pandas_data=True,
                        num_parameters=1,
                        multindex_cols_ext=[0,1,2,3],
@@ -92,6 +93,7 @@ class DataHandle:
         self.flnm_ref = refmodel_filename
         self.data_dir = data_dir
         self.csv_bool = csv_data
+        self.csv_zip = csv_zip
         self.pandas_bool = pandas_data
         self.num_parameters = num_parameters
         self.mindexcols_ref = multindex_cols_ref
@@ -119,6 +121,8 @@ class DataHandle:
         ## check if the input is a csv file
         if self.csv_bool==True:
             fileext = '.csv'
+            if self.csv_zip==True:
+                fileext = fileext+'.zip'
         else:
             raise ValueError('File type extension not supported yet.')
         

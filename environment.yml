@@ -1,12 +1,24 @@
-name: lootiemu
+name: looti
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - numpy
-  - scipy
+  - pip>=19.0
+  - python=3.8
+  - cython<=0.29.28
+#  - astropy>=4.0
+#  - camb>=1.3
   - ipython
-  - jupyter
-  - pandas
-  - matplotlib
+  - jupyter>=1.0
+  - matplotlib>=3.1
+  - numpy>=1.17
+  - scipy>=1.3
   - scikit-learn
-  - pyyaml
+  - pandas
+  - seaborn
+  - joblib
+  - pip:
+    - getdist>=1.1.3
+#    - cobaya>=3.0
+    - pyyaml
+    - ray
