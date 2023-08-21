@@ -81,12 +81,14 @@ class CosmoEmulator:
     def create_emulator(self, cosmo_quantity, n_params, **kwargs):
 
         emulation_data = self.data[cosmo_quantity]
-        
+        gp_length = n_params
+        if emulation_data.multiple_z:
+            gp_length += 1
         PCAop = dcl.LearningOperator(method='PCA',
                                      mult_gp=kwargs.get('mult_gp', False),
                                      ncomp=kwargs.get('ncomp', 8),
                                      gp_n_rsts=kwargs.get('gp_n_rsts', 40),
-                                     gp_length=kwargs.get('gp_length', np.ones(n_params)),
+                                     gp_length=kwargs.get('gp_length', np.ones(gp_length)),
                                      verbosity=0)
         emuobj = dcl.LearnData(PCAop)
         emuobj.interpolate(emulation_data = emulation_data)
