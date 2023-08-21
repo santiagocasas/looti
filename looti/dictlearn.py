@@ -25,6 +25,7 @@ class LearningOperator:
         self._def_interp_opts = {'kind':'linear'}
         self._def_mult_gp = False
         self._def_ncomp = 1
+        self._def_pca_norm = True
         self._def_dl_alpha = 0.001
         self._def_dl_tralgo = 'lasso_lars'
         self._def_dl_fitalgo = 'lars'
@@ -44,6 +45,7 @@ class LearningOperator:
         self.interp_opts = kwargs.get('interp_opts', self._def_interp_opts)
         self.mult_gp = kwargs.get('mult_gp', self._def_mult_gp)
         self.ncomp = kwargs.get('ncomp', self._def_ncomp)
+        self.pca_norm = kwargs.get('pca_norm', self._def_pca_norm)
         self.gp_n_rsts = kwargs.get('gp_n_rsts', self._def_gp_n_rsts)
         self.gp_const =  kwargs.get('gp_alpha', self._def_gp_const)
         self.gp_length =  kwargs.get('gp_length', self._def_gp_length)
@@ -79,6 +81,7 @@ class LearnData:
         self.interp_opts  = self.operator.interp_opts
         self.mult_gp = self.operator.mult_gp
         self.ncomp       = self.operator.ncomp
+        self.pca_norm = self.operator.pca_norm
         self.gp_n_rsts = self.operator.gp_n_rsts
         self.gp_const =  self.operator.gp_const
         self.gp_length =  self.operator.gp_length
@@ -98,7 +101,7 @@ class LearnData:
         self.verbosity = self.operator.verbosity
         return None
 
-    def interpolate(self, emulation_data, train_noise=[False], pca_norm=True):
+    def interpolate(self, emulation_data, train_noise=[False]):
         """Construct the interpolation between the paremeters and the spectra of the training set.
         Args:
             train_data: spectra 
@@ -123,7 +126,7 @@ class LearnData:
         if self.method == "LIN":
             self.LINtraining()
         elif self.method == "PCA":
-            self.PCAtraining(pca_norm)
+            self.PCAtraining()
         elif self.method == "DL":
             self.DLtraining()
         elif self.method == "GP":
@@ -136,6 +139,7 @@ class LearnData:
     def set_attributes(self, emulation_data):
 
         self.fgrid = emulation_data.fgrid
+        self.features_to_Log = emulation_data.features_to_Log
         self.observable_to_Log = emulation_data.observable_to_Log
         self.multiple_z = emulation_data.multiple_z
         self.df_ref = emulation_data.df_ref
@@ -165,12 +169,12 @@ class LearnData:
         self.interpol_matrix = interpolFuncsLin_matrix
         return self.interpol_matrix  ## matrix of interpolating functions at each feature
 
-    def PCAtraining(self, pca_norm):
+    def PCAtraining(self):
         """Computing the PCA representation and contruct the interpolation over the PCA components"""
         pca=PCA(n_components=self.ncomp)
         self.pca=pca
 
-        matPCA = self.PCAtransform(pca_norm=pca_norm)
+        matPCA = self.PCAtransform()
 
         trainspace_normed = self.normalize(self.trainspace)
         self.trainspace_normed = trainspace_normed
@@ -243,14 +247,14 @@ class LearnData:
         self.gp_regressor.fit(X_train, Y_train)
 
 
-    def PCAtransform(self, pca_norm):
+    def PCAtransform(self):
 
         pca=PCA(n_components=self.ncomp)
         self.pca=pca ## take n principal components
 
         matPCA_raw = pca.fit(self.trainspace_mat).transform(self.trainspace_mat)
 
-        if pca_norm == True:
+        if self.pca_norm == True:
             self.matPCA_mean = matPCA_raw.mean(axis=0)
             self.matPCA_std = matPCA_raw.std(axis=0)
             matPCA = (matPCA_raw - self.matPCA_mean) / self.matPCA_std
@@ -290,7 +294,7 @@ class LearnData:
 
 
 
-    def predict(self, predict_space, pca_norm=True):
+    def predict(self, predict_space):
         """Predict the spectra for a given set of paremeters.
         Args:
             predict_space: the paremeters of the spectra to predict.
@@ -303,7 +307,7 @@ class LearnData:
         self.predict_space = np.copy(predict_space)
         if self.interp_dim<2:
             self.predict_space = self.predict_space[:,-1].flatten()
-        self.predict_mat = self.reconstruct_data(self.predict_space, pca_norm)
+        self.predict_mat = self.reconstruct_data(self.predict_space)
         self.predict_mat_dict = dict()
         if self.method=="OT":
             pred_ws=self.predi_weights_arr
@@ -321,7 +325,7 @@ class LearnData:
         return self.predict_mat_dict
     
 
-    def predict_mat(self, predict_space, pca_norm=True):
+    def predict_mat(self, predict_space):
         """Predict the spectra for a given set of paremeters.
         Args:
             predict_space: the paremeters of the spectra to predict.
@@ -334,7 +338,7 @@ class LearnData:
         self.predict_space = np.copy(predict_space)
         if self.interp_dim<2:
             self.predict_space = self.predict_space[:,-1].flatten()
-        self.predict_mat = self.reconstruct_data(self.predict_space, pca_norm)
+        self.predict_mat = self.reconstruct_data(self.predict_space)
         self.predict_mat_dict = dict()
         if self.method=="OT":
             pred_ws=self.predi_weights_arr
@@ -367,7 +371,7 @@ class LearnData:
 
 
 
-    def reconstruct_data(self, parspace, pca_norm):
+    def reconstruct_data(self, parspace):
         """Predict the spectra for a given set of paremeters.
         Args:
             predict_space: paremeters of the spectra to predict.
@@ -387,7 +391,7 @@ class LearnData:
             else:
                 self.interp_atoms_normed = self.interpolated_atoms(parspace)
 
-            if pca_norm == True:
+            if self.pca_norm == True:
                 self.interp_atoms = self.interp_atoms_normed * self.matPCA_std + self.matPCA_mean
             else:
                 self.interp_atoms = self.interp_atoms_normed
@@ -645,12 +649,12 @@ def Predict_ratio(emulation_data,
     emulation_data.data_split(split,thinning=thinning, mask=mask,
                               apply_mask = GLOBAL_apply_mask, verbosity=0)
     
-    PCAop = LearningOperator(Operator,ncomp=ncomp,gp_n_rsts =gp_n_rsts,gp_const=gp_const,gp_length=gp_length, gp_bounds=gp_bounds, interp_type=interp_type,interp_dim=interp_dim)
+    PCAop = LearningOperator(Operator,ncomp=ncomp,pca_norm=pca_norm,gp_n_rsts=gp_n_rsts,gp_const=gp_const,gp_length=gp_length, gp_bounds=gp_bounds, interp_type=interp_type,interp_dim=interp_dim)
     intobj = LearnData(PCAop)
 ###Perfoming the PCA reduction and interpolation
     intobj.interpolate(train_data=emulation_data.matrix_datalearn_dict['train'],
-                       train_samples=emulation_data.train_samples,train_noise = train_noise, pca_norm=pca_norm)
-    ratios_predicted = intobj.predict(emulation_data.test_samples, pca_norm)
+                       train_samples=emulation_data.train_samples,train_noise = train_noise)
+    ratios_predicted = intobj.predict(emulation_data.test_samples)
 
     if return_interpolator == True:
         return  ratios_predicted,emulation_data,intobj 
