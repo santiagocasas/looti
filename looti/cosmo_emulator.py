@@ -93,7 +93,7 @@ class CosmoEmulator:
         emuobj = dcl.LearnData(PCAop)
         emuobj.interpolate(emulation_data = emulation_data)
         ## TODO: THIS needs to be changed to accept redshifts
-        self.emu_objs[cosmo_quantity] = emuobj
+        self.emu_objs[cosmo_quantity] = [emuobj]
 
 
     def get_prediction(self, cosmo_quantity, input_dict, redshift_argument=None):
