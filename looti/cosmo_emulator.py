@@ -7,7 +7,7 @@ from glob import glob
 
 class CosmoEmulator:
 
-    def __init__(self, external_info=dict()):
+    def __init__(self, external_info={'config_yaml': '../readfile_configs/read_input4cast.yaml'}):
 
         self.data = {}
         self.emu_objs = {}

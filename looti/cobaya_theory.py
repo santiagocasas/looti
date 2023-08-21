@@ -4,7 +4,7 @@ import numpy as np
 
 from copy import deepcopy
 
-from looti.cosmo_emulator_cobaya import CosmoEmulator
+from looti.cosmo_emulator import CosmoEmulator
 from cobaya.theories.cosmo import BoltzmannBase
 
 from collections import deque
@@ -55,6 +55,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                             n_train = self.extra_args['quantities'][quantity]['n_train'],
                             n_test = self.extra_args['quantities'][quantity]['n_test'],
                             features_to_Log = self.extra_args['quantities'][quantity].get('features_to_Log', True),
+                            observable_to_Log = self.extra_args['quantities'][quantity].get('observable_to_Log', False),
                             **self.extra_args['quantities'][quantity].get('kwargs', {}))
 
             # Train with create intobj
@@ -78,7 +79,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
             if req == 'Cl':
                 self._must_provide['Cl'] = {}
                 if 'tt' in v.keys():
-                    if not 'ttcl' in self.emu_objs.keys():
+                    if not 'TT' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['tt']>self.get_info('ttcl')['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for TT are larger than the ones in the emulator (%d)", v['tt'], self.get_info('ttcl')['grid_max'])
@@ -88,7 +89,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                     else:
                         self._must_provide['Cl']['tt'] = v['tt'] 
                 elif 'te' in v.keys():
-                    if not 'tecl' in self.emu_objs.keys():
+                    if not 'TE' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['te']>self.intobjs['tecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for TE are larger than the ones in the emulator (%d)", v['te'], self.intobjs['tecl'].get_info['grid_max'])
@@ -98,7 +99,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                     else:
                         self._must_provide['Cl']['te'] = v['te']
                 elif 'ee' in v.keys():
-                    if not 'eecl' in self.emu_objs.keys():
+                    if not 'EE' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['ee']>self.intobjs['eecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for EE are larger than the ones in the emulator (%d)", v['ee'], self.intobjs['eecl'].get_info['grid_max'])
@@ -138,13 +139,13 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         # Get Cl's from intobj
         cls = {}
         if 'tt' in self._must_provide['Cl'].keys():
-            ell, tt = self.get_prediction('ttcl',params_values_dict)
+            ell, tt = self.get_prediction('TT',params_values_dict)
             cls['tt'] = tt
         if 'te' in self._must_provide['Cl'].keys():
-            ell, te = self.get_prediction('tecl',params_values_dict)
+            ell, te = self.get_prediction('TE',params_values_dict)
             cls['te'] = te
         if 'ee' in self._must_provide['Cl'].keys():
-            ell, ee = self.get_prediction('eecl',params_values_dict)
+            ell, ee = self.get_prediction('EE',params_values_dict)
             cls['ee'] = ee
         
         # use this when working   
