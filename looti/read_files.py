@@ -17,12 +17,17 @@ class FileReader():
 
     def __init__(self,path_config_file = "../config_read.yaml", csv_zip=True) :
         self.__read__config(path_config_file)
+
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
         self.csv_zip = csv_zip
         self.fileformat='.csv'
         if self.csv_zip:
             self.fileformat = self.fileformat+'.zip'
         self.folders = self.read_folder(self.folders_path)
     
+
     def __read__config(self,path_config_file):
         
         with open(path_config_file,'r') as file:
@@ -47,6 +52,8 @@ class FileReader():
 
 
     def create_dataframes(self):
+
+        self.get_grid()
 
         for file_name, data_type in zip(self.data_file_names, self.data_types):
             
@@ -290,22 +297,26 @@ class FileReader():
             cp.read_file(config)
 
             return dict(cp.items('dummy_section'))
+
+    def get_grid(self):
+
+        path = self.folders_path + self.reference_folder + "/" 
+
+        try:
+            self.global_z_array = np.loadtxt(path + self.z_file_name)
+        except:
+            pass
+        try:
+            self.global_k_array = np.loadtxt(path + self.k_file_name)
+        except:
+            pass
+        try: 
+            self.global_ells_array = np.loadtxt(path + self.ells_file_name)
+        except:
+            pass
         
 
     def read_files(self, folders_path, folder_name, data_file_name):
-        if folder_name == self.reference_folder:
-            try :
-                self.global_z_array = np.loadtxt(folders_path + folder_name + "/" + self.z_file_name)
-            except:
-                pass
-            try:
-                self.global_k_array = np.loadtxt(folders_path + folder_name + "/" + self.k_file_name)
-            except :
-                pass
-            try: 
-                self.global_ells_array = np.loadtxt(folders_path + folder_name + "/" + self.ells_file_name)
-            except :
-                pass
 
         observable  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
 
