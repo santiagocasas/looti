@@ -1,37 +1,37 @@
 ###DATA FORMAT###
 
-folders_path: ../../raw_data/class_Asw0wa_DP_cmb_2K/   ## path to the output folders
+folders_path:  /work/qh043052/Emulator/input_4_cast/output/class_As_cmb_npz/  ## path to the output folders
 params_file: cosmo_varying.ini                                                  ## config file containing the specific values per run
 reference_folder: '0000'                                                        ## folder containing output for fiducial values
-save_path: ../training_data/                                                    ## path where dataframes are saved
-save_name: class_Asw0wa_DP_cmb_2K                                                ## file name under which the dataframes are saved
+save_path: /work/bk935060/Looti/looti/training_data/                                                    ## path where dataframes are saved
+save_name: cmb                                                ## file name under which the dataframes are saved
 
-z_file_name: z_values_list.txt        ## file containing the list of redshift values
-k_file_name: k_values_list.txt        ## file containing the list of k values
-ells_file_name: ells_cls.txt        ## file containing the list of k values
+z_file_name: z_values_list.npz        ## file containing the list of redshift values
+k_file_name: k_values_list.npz        ## file containing the list of k values
+ells_file_name: ells_cls.npz        ## file containing the list of k values
 
 data_file_names:                       ## files containing the observables
-- Plin-zk.txt
-- Pnonlin-zk.txt
-- f_GrowthRate-zk.txt
-- sigma8-z.txt
-- background_Hz.txt
-- TT_cls.txt
-- TE_cls.txt
-- EE_cls.txt
+# - Plin-zk.txt
+# - Pnonlin-zk.txt
+# - f_GrowthRate-zk.txt
+# - sigma8-z.txt
+# - background_Hz.txt
+- TT_cls.npz
+- TE_cls.npz
+- EE_cls.npz
 
 data_types:
-- Plin
-- Pnonlin
-- f_GrowthRate
-- sigma8
-- background_H
+# - Plin
+# - Pnonlin
+# - f_GrowthRate
+# - sigma8
+# - background_H
 - TT
 - TE
 - EE
 
-n_samples : 600
-n_training_samples: 500
+n_samples : 1200
+n_training_samples: 1000
 n_test_samples: 100
 
 training_redshifts: 

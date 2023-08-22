@@ -303,22 +303,22 @@ class FileReader():
         path = self.folders_path + self.reference_folder + "/" 
 
         try:
-            self.global_z_array = np.loadtxt(path + self.z_file_name)
+            self.global_z_array = np.load(path + self.z_file_name)['arr_0']
         except:
             pass
         try:
-            self.global_k_array = np.loadtxt(path + self.k_file_name)
+            self.global_k_array = np.load(path + self.k_file_name)['arr_0']
         except:
             pass
         try: 
-            self.global_ells_array = np.loadtxt(path + self.ells_file_name)
+            self.global_ells_array = np.load(path + self.ells_file_name)['arr_0']
         except:
             pass
         
 
     def read_files(self, folders_path, folder_name, data_file_name):
 
-        observable  = np.loadtxt(folders_path + folder_name + "/" + data_file_name)
+        observable  = np.load(folders_path + folder_name + "/" + data_file_name)['arr_0']
 
         return observable
     
