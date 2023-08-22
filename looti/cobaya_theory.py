@@ -42,26 +42,32 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
 
             # If there exists path to trained intobj, read it
 
-            if 'intobj_path' in self.extra_args['quantities'][quantity].keys():
-                self.read_emulator(quantity, self.extra_args['quantities'][quantity]['intobj_path'])
+            if 'emuobj_directory' in self.extra_args['quantities'][quantity].keys():
+
+                print('LOOTI: Loading emulator for ', quantity)
+                self.read_emulator(cosmo_quantity=quantity, directory=self.extra_args['quantities'][quantity]['emuobj_directory'])
+                print('LOOTI: Loaded')
+
 
             # Else, read data from csv files and train intobj
-            print()
-
-            self.read_data(quantity, 
-                           data_path = self.extra_args['quantities'][quantity]['data_path'],
-                            file_name = self.extra_args['quantities'][quantity]['file_name'],
-                            n_params = self.extra_args['quantities'][quantity]['n_params'],
-                            n_train = self.extra_args['quantities'][quantity]['n_train'],
-                            n_test = self.extra_args['quantities'][quantity]['n_test'],
-                            features_to_Log = self.extra_args['quantities'][quantity].get('features_to_Log', True),
-                            observable_to_Log = self.extra_args['quantities'][quantity].get('observable_to_Log', False),
-                            **self.extra_args['quantities'][quantity].get('kwargs', {}))
-
-            # Train with create intobj
-            self.create_emulator(quantity, 
-                               n_params = self.extra_args['quantities'][quantity]['n_params'], 
-                               **self.extra_args['quantities'][quantity].get('kwargs', {}))
+            else:
+                print('LOOTI: Loading data from csv files')
+                self.read_data(quantity, 
+                            data_path = self.extra_args['quantities'][quantity]['data_path'],
+                                file_name = self.extra_args['quantities'][quantity]['file_name'],
+                                n_params = self.extra_args['quantities'][quantity]['n_params'],
+                                n_train = self.extra_args['quantities'][quantity]['n_train'],
+                                n_test = self.extra_args['quantities'][quantity]['n_test'],
+                                features_to_Log = self.extra_args['quantities'][quantity].get('features_to_Log', True),
+                                observable_to_Log = self.extra_args['quantities'][quantity].get('observable_to_Log', False),
+                                **self.extra_args['quantities'][quantity].get('kwargs', {}))
+                print('LOOTI: Data loaded')
+                print('LOOTI: Training emulator for ', quantity)
+                # Train with create intobj
+                self.create_emulator(quantity, 
+                                n_params = self.extra_args['quantities'][quantity]['n_params'], 
+                                **self.extra_args['quantities'][quantity].get('kwargs', {}))
+                print('LOOTI: Training complete.')
             
 
 
@@ -130,7 +136,6 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                 raise ValueError("Unknown quantity %s" % quantity)
             
         # Get Cl's from intobj
-
         state['derived_extra'] = {'T_cmb': 2.7255}
 
         return state
@@ -139,14 +144,15 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         # Get Cl's from intobj
         cls = {}
         if 'tt' in self._must_provide['Cl'].keys():
-            ell, tt = self.get_prediction('TT',params_values_dict)
-            cls['tt'] = tt
+            z, ell, tt = self.get_prediction('TT',params_values_dict)
+            ell_factor = ((ell + 1) * ell / (2 * np.pi))[2:]
+            cls['tt'] = tt[0] / ell_factor
         if 'te' in self._must_provide['Cl'].keys():
-            ell, te = self.get_prediction('TE',params_values_dict)
-            cls['te'] = te
+            z, ell, te = self.get_prediction('TE',params_values_dict)
+            cls['te'] = te[0]
         if 'ee' in self._must_provide['Cl'].keys():
-            ell, ee = self.get_prediction('EE',params_values_dict)
-            cls['ee'] = ee
+            z, ell, ee = self.get_prediction('EE',params_values_dict)
+            cls['ee'] = ee[0]
         
         # use this when working   
         cls['ell'] = np.array(ell,dtype=int) 
