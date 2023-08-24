@@ -75,15 +75,16 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         self.extra_args = kwargs
 
     def must_provide(self, **requirements):
-        print('must_provide')
-        print(requirements)
         # Computed quantities required by the likelihood
 
         #TODO: USE ONCE get_info is implemented
 
         for req, v in requirements.items():
+
+            if not req in self._must_provide.keys():
+                    self._must_provide[req] = {}
+
             if req == 'Cl':
-                self._must_provide['Cl'] = {}
                 if 'tt' in v.keys():
                     if not 'TT' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
@@ -94,7 +95,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                             self._must_provide['Cl']['tt'] = v['tt']
                     else:
                         self._must_provide['Cl']['tt'] = v['tt'] 
-                elif 'te' in v.keys():
+                if 'te' in v.keys():
                     if not 'TE' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['te']>self.intobjs['tecl'].get_info['grid_max']:
@@ -104,7 +105,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                             self._must_provide['Cl']['te'] = v['te']
                     else:
                         self._must_provide['Cl']['te'] = v['te']
-                elif 'ee' in v.keys():
+                if 'ee' in v.keys():
                     if not 'EE' in self.emu_objs.keys():
                         raise ValueError("You must provide the Cl's for TT")
                     #elif v['ee']>self.intobjs['eecl'].get_info['grid_max']:
@@ -145,8 +146,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         cls = {}
         if 'tt' in self._must_provide['Cl'].keys():
             z, ell, tt = self.get_prediction('TT',params_values_dict)
-            ell_factor = ((ell + 1) * ell / (2 * np.pi))[2:]
-            cls['tt'] = tt[0] / ell_factor
+            cls['tt'] = tt[0]
         if 'te' in self._must_provide['Cl'].keys():
             z, ell, te = self.get_prediction('TE',params_values_dict)
             cls['te'] = te[0]
