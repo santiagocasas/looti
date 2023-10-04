@@ -44,14 +44,14 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
 
             if 'emuobj_directory' in self.extra_args['quantities'][quantity].keys():
 
-                print('LOOTI: Loading emulator for ', quantity)
+                print('[looti] Loading emulator for ', quantity)
                 self.read_emulator(cosmo_quantity=quantity, directory=self.extra_args['quantities'][quantity]['emuobj_directory'])
-                print('LOOTI: Loaded')
+                print('[looti] Loaded')
 
 
             # Else, read data from csv files and train intobj
             else:
-                print('LOOTI: Loading data from csv files')
+                print('[looti] Loading data from csv files')
                 self.read_data(quantity, 
                             data_path = self.extra_args['quantities'][quantity]['data_path'],
                                 file_name = self.extra_args['quantities'][quantity]['file_name'],
@@ -61,13 +61,13 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                                 features_to_Log = self.extra_args['quantities'][quantity].get('features_to_Log', True),
                                 observable_to_Log = self.extra_args['quantities'][quantity].get('observable_to_Log', False),
                                 **self.extra_args['quantities'][quantity].get('kwargs', {}))
-                print('LOOTI: Data loaded')
-                print('LOOTI: Training emulator for ', quantity)
+                print('[looti] Data loaded')
+                print('[looti] Training emulator for ', quantity)
                 # Train with create intobj
                 self.create_emulator(quantity, 
                                 n_params = self.extra_args['quantities'][quantity]['n_params'], 
                                 **self.extra_args['quantities'][quantity].get('kwargs', {}))
-                print('LOOTI: Training complete.')
+                print('[looti] Training complete.')
             
 
 
@@ -97,7 +97,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                         self._must_provide['Cl']['tt'] = v['tt'] 
                 if 'te' in v.keys():
                     if not 'TE' in self.emu_objs.keys():
-                        raise ValueError("You must provide the Cl's for TT")
+                        raise ValueError("You must provide the Cl's for TE")
                     #elif v['te']>self.intobjs['tecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for TE are larger than the ones in the emulator (%d)", v['te'], self.intobjs['tecl'].get_info['grid_max'])
                     if 'te' in self._must_provide['Cl'].keys():
@@ -107,7 +107,7 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
                         self._must_provide['Cl']['te'] = v['te']
                 if 'ee' in v.keys():
                     if not 'EE' in self.emu_objs.keys():
-                        raise ValueError("You must provide the Cl's for TT")
+                        raise ValueError("You must provide the Cl's for EE")
                     #elif v['ee']>self.intobjs['eecl'].get_info['grid_max']:
                     #    raise ValueError("Required Cl's (%d) for EE are larger than the ones in the emulator (%d)", v['ee'], self.intobjs['eecl'].get_info['grid_max'])
                     if 'ee' in self._must_provide['Cl'].keys():
@@ -128,10 +128,10 @@ class Looti_Cobaya(CosmoEmulator,BoltzmannBase):
         
         for quantity in self._must_provide.keys():
             if quantity == 'Cl':
-                cls = self.compute_Cl(params_values_dict)
+                cls = self.compute_Cl(params_values_dict=params_values_dict, ell_factor=False)
                 state['Cl'] = cls
             elif quantity == 'Pk':
-                pk = self.compute_Pk(params_values_dict)
+                pk = self.compute_Pk(params_values_dict=params_values_dict, ell_factor=False)
                 state['Pk'] = pk
             else:
                 raise ValueError("Unknown quantity %s" % quantity)
