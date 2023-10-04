@@ -53,6 +53,7 @@ class CosmoEmulator:
                                             n_test=n_test,
                                             verbosity=0,
                                             manual_split=True,
+                                            test_indices=kwargs.get('test_indices', None),
                                             train_redshift_indices=kwargs.get('redshifts', [0]),
                                             test_redshift_indices=kwargs.get('redshifts', [0]))
         emulation_data.data_split(verbosity=0)
@@ -123,10 +124,10 @@ class CosmoEmulator:
         input_params_list = []
         for param in limits_dict.keys():
             try:
-                if input_dict[param] >= limits_dict[param][0] and input_dict[param] <= limits_dict[param][1]:
-                    input_params_list.append(input_dict[param])
-                else:
-                    raise ValueError('Requested value for %s is outside of training region.' %param)
+                # if input_dict[param] >= limits_dict[param][0] and input_dict[param] <= limits_dict[param][1]:
+                input_params_list.append(input_dict[param])
+                # else:
+                #     raise ValueError('Requested value for %s is outside of training region.' %param)
             except KeyError:
                 print('Missing input value for parameter:', param)
         input_params = np.array(input_params_list)
