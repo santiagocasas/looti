@@ -1,10 +1,10 @@
 ###DATA FORMAT###
 
-folders_path:  /work/qh043052/Emulator/input_4_cast/output/class_As_cmb_npz/  ## path to the output folders
+folders_path:  /work/qh043052/Emulator/input_4_cast/output/class_MnuNur_5sigma/  ## path to the output folders
 params_file: cosmo_varying.ini                                                  ## config file containing the specific values per run
 reference_folder: '0000'                                                        ## folder containing output for fiducial values
-save_path: /work/bk935060/Looti/looti/training_data/                                                    ## path where dataframes are saved
-save_name: cmb                                                ## file name under which the dataframes are saved
+save_path: /work/bk935060/Looti/looti/training_data/MnuNur_5sigma_sig8/               ## path where dataframes are saved
+save_name: lensed                                                ## file name under which the dataframes are saved
 
 z_file_name: z_values_list.npz        ## file containing the list of redshift values
 k_file_name: k_values_list.npz        ## file containing the list of k values
