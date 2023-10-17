@@ -2,6 +2,10 @@ data/
 interpolators/
 plots/
 notebooks_additional/
+jobs/
+training_data/
+emulators/
+datahandle/
 
 
 # Byte-compiled / optimized / DLL files
