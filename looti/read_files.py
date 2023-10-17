@@ -25,7 +25,6 @@ class FileReader():
         self.fileformat='.csv'
         if self.csv_zip:
             self.fileformat = self.fileformat+'.zip'
-        self.folders = self.read_folder(self.folders_path)
     
 
     def __read__config(self,path_config_file):
@@ -52,7 +51,7 @@ class FileReader():
 
 
     def create_dataframes(self):
-
+        self.folders = self.read_folder(self.folders_path)
         self.get_grid()
 
         for file_name, data_type in zip(self.data_file_names, self.data_types):

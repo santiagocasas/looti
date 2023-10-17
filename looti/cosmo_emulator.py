@@ -13,9 +13,9 @@ class CosmoEmulator:
         self.emu_objs = {}
         self.external_info = external_info
         self.config_yaml = self.external_info['config_yaml']
-        self.FileReader = rf.FileReader(path_config_file=self.config_yaml)
 
     def create_dataframes(self):
+        self.FileReader = rf.FileReader(path_config_file=self.config_yaml)
         self.FileReader.create_dataframes()
         self.params_varying = self.FileReader.params_varying
         self.n_params = len(self.params_varying)
