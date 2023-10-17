@@ -7,13 +7,11 @@ import time
 import os
 
 # path and file name of the training data set (pandas dataframe)
-data_path = '../training_data/justClsLensed_10sigma_nosig8/'
-file_name_list = ['lensed_TT', 'lensed_TE', 'lensed_EE']
-# file_name_list = ['class_Asw0wa_DP_cmb_2K_Pnonlin', 'class_Asw0wa_DP_cmb_2K_f_GrowthRate', 'class_Asw0wa_DP_cmb_2K_D_Growth', 'class_Asw0wa_DP_cmb_2K_background_H']
+data_path = '../training_data/Lcdm_cube_5sigma_nosig8/'
+file_name_list = ['_TT', '_TE', '_EE']
 
 # type of observable to be emulated
 cosmo_quantity_list = ['TT', 'TE', 'EE']
-# cosmo_quantity_list = ['Pnonlin', 'f_GrowthRate', 'D_Growth']
 
 # number of varying parameters in data set
 n_params = 6
@@ -31,7 +29,7 @@ features_to_Log = False
 observable_to_Log = False
 
 # choose number of PCA components
-ncomp_list = [20]
+ncomp_list = [8]
 
 # option to have a seperate Gaussian process for each PCA component
 mult_gp = True
@@ -165,20 +163,28 @@ def run_all(cosmo_quantity, ncomp):
     intobj_pk.mean_test_residual_cv = np.mean(mean_res_cv)
 
     pickle.dump(intobj_pk, open(save_emus_dir+ '%s_pca%i.sav' %(cosmo_quantity, ncomp), 'wb'))
+    pickle.dump(emulation_data_pk, open(save_data_dir+ '%s_pca%i.sav' %(cosmo_quantity, ncomp), 'wb'))
 
 ## ---------------------------------------------------------------------------------------------------------
 
 
 for n_train in n_train_list:
     print("Train on %i samples" %(n_train))
-    save_emus_dir = '/work/bk935060/Looti/looti/emulators/justClsLensed_10sigma_%i_npca20/' %(n_train)
-    save_plots_dir = '/work/bk935060/Looti/looti/plots/justClsLensed_10sigma_%i_npca20/' %(n_train)
+    save_emus_dir = '/work/bk935060/Looti/looti/emulators/Lcdm_cube_5sigma_%i_npca8/' %(n_train)
+    save_data_dir = '/work/bk935060/Looti/looti/datahandle/Lcdm_cube_5sigma_%i_npca8/' %(n_train)
+    save_plots_dir = '/work/bk935060/Looti/looti/plots/Lcdm_cube_5sigma_%i_npca8/' %(n_train)
 
     if not os.path.exists(save_emus_dir):
         os.makedirs(save_emus_dir)
         print("Emuators will be saved in:", save_emus_dir)
     else:
         print("Directory already exists. Adding emulators to:", save_emus_dir)
+
+    if not os.path.exists(save_data_dir):
+        os.makedirs(save_data_dir)
+        print("Data will be saved in:", save_data_dir)
+    else:
+        print("Directory already exists. Adding data to:", save_data_dir)
 
     if not os.path.exists(save_plots_dir):
         os.makedirs(save_plots_dir)
