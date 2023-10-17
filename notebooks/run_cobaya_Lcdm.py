@@ -7,8 +7,8 @@ n_train_list = [500]
 
 for n_train in n_train_list:
 
-    emudir = "/work/bk935060/Looti/looti/emulators/justClsLensed_10sigma_%i_npca20/" %(n_train)
-    savedir = "/work/bk935060/Looti/cobaya/looti_TTTEEE_10sigma_%i_npca20/chains/" %(n_train)
+    emudir = "/work/bk935060/Looti/looti/emulators/Lcdm_cube_5sigma_%i_npca15/" %(n_train)
+    savedir = "/work/bk935060/Looti/cobaya/looti_TTTEEE_cube_5sigma_%i_npca15/chains/" %(n_train)
 
     print(emudir)
     print(savedir)
