@@ -121,8 +121,7 @@ class LearnData:
         self.trainspace =  train_samples
         if self.interp_dim <2:
             self.trainspace =  self.trainspace[:,-1].flatten() 
-
-
+        #
         if self.method == "LIN":
             self.LINtraining()
         elif self.method == "PCA":
@@ -169,7 +168,7 @@ class LearnData:
         self.interpol_matrix = interpolFuncsLin_matrix
         return self.interpol_matrix  ## matrix of interpolating functions at each feature
 
-    def PCAtraining(self):
+    def PCAtraining(self):   ##TODO:  Make arguments explicit
         """Computing the PCA representation and contruct the interpolation over the PCA components"""
         pca=PCA(n_components=self.ncomp)
         self.pca=pca
@@ -214,7 +213,7 @@ class LearnData:
             return self.interpol_matrix  ## matrix of interpolating functions at each feature
 
 
-    def CreateGP(self):
+    def CreateGP(self):  ## TODO: Use jax und GPjax
         """Create the GP interpolator object"""
         self.interp_dim = 2
         if np.all(self.train_noise) == False:
@@ -239,7 +238,7 @@ class LearnData:
         
 
 
-    def GPtraining(self):
+    def GPtraining(self): ## TODO: Use jax und GPjax
         """Contruct the interpolation function according to a Gaussian Process"""
         X_train = self.trainspace
         Y_train = self.trainspace_mat
@@ -247,7 +246,7 @@ class LearnData:
         self.gp_regressor.fit(X_train, Y_train)
 
 
-    def PCAtransform(self):
+    def PCAtransform(self):  ##TODO: Use jax
 
         pca=PCA(n_components=self.ncomp)
         self.pca=pca ## take n principal components

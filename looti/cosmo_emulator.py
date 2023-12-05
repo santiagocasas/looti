@@ -98,7 +98,7 @@ class CosmoEmulator:
 
 
     def get_prediction(self, cosmo_quantity, input_dict, redshift_argument=None):
-
+        ##TODO: Use jax
         emuobj_list = self.emu_objs[cosmo_quantity]
 
         params_requested = self.read_input_dict(input_dict, cosmo_quantity, 
@@ -116,7 +116,7 @@ class CosmoEmulator:
 
         return z_values, fgrid, predictions_list
     
-
+    ##TODO: get_prediction_gradients with jax
     def read_input_dict(self, input_dict, cosmo_quantity, redshift_argument=None):
 
         limits_dict = self.get_params(cosmo_quantity)
